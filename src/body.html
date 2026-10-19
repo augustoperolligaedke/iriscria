@@ -73,9 +73,9 @@
 <section class="hero" id="top">
   <div class="wrap hero-grid">
     <div class="stack" style="gap:24px">
-      <span class="eyebrow">Para lojas de moda e semijoias</span>
-      <h1>Chegou peça nova?<br>O post sai hoje.</h1>
-      <p class="lead">Tire a foto da peça no cabide, no manequim ou no balcão e mande. A Íris cria o post, o reels e o carrossel com a cara da sua loja, sem ensaio de fotos. Você ajusta e aprova pelo celular.</p>
+      <span class="eyebrow">Para lojas que vendem no Instagram</span>
+      <h1>Chegou produto novo?<br>O post sai hoje.</h1>
+      <p class="lead">Moda, semijoias, beleza, casa ou presentes: mande a foto do produto e a Íris cria o post, o carrossel e o reels com a cara da sua loja, sem ensaio de fotos. Você ajusta e aprova pelo celular.</p>
       <form class="hero-cta" id="hero-form" novalidate>
         <div class="hero-form with-icon">
           <svg class="in-icon" aria-hidden="true"><use href="#i-ig"/></svg>
@@ -119,8 +119,8 @@
     <div class="talk-head reveal">
       <img src="assets/iris-mark.png" alt="Mascote da Íris" width="72" height="72">
       <div class="stack" style="gap:8px">
-        <h2 class="h2">É só mandar a foto da peça</h2>
-        <p class="lead">Do provador para o feed no mesmo dia. <span class="fine">Conversas de exemplo.</span></p>
+        <h2 class="h2">É só mandar a foto do produto</h2>
+        <p class="lead">Da foto para o feed no mesmo dia. <span class="fine">Conversas de exemplo.</span></p>
       </div>
     </div>
     <div class="rail-wrap reveal" style="--cols:4">
@@ -262,7 +262,7 @@
   <div class="wrap stack" style="gap:32px">
     <div class="stack reveal">
       <span class="eyebrow">Para quem é</span>
-      <h2 class="h2">Feito para loja de moda e semijoia<br>que tem novidade toda semana.</h2>
+      <h2 class="h2">Feito para quem lança<br>novidade toda semana.</h2>
     </div>
     <div class="bento reveal">
       <article class="bcard b-wide">
@@ -390,7 +390,7 @@
       <h2 class="h2">Perguntas frequentes</h2>
     </div>
     <div class="faq reveal">
-      <details><summary><span class="q">Funciona com foto no cabide ou no manequim?<svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><div class="a"><p>Funciona. Tire a foto com boa luz e a peça inteira aparecendo. A Íris usa a sua foto como ela é: não muda cor, estampa nem modelagem da peça.</p></div></details>
+      <details><summary><span class="q">Funciona com foto tirada no celular?<svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><div class="a"><p>Funciona: no cabide, no manequim, no balcão ou na mão. Com boa luz e o produto inteiro aparecendo, a Íris usa a sua foto como ela é, sem mudar cor, estampa ou rótulo.</p></div></details>
       <details><summary><span class="q">Preciso ter e-commerce?<svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><div class="a"><p>Não. Se você vende pelo Instagram e fecha pelo WhatsApp, é só começar com as fotos das suas peças.</p></div></details>
       <details><summary><span class="q">Preciso saber editar?<svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><div class="a"><p>Você parte de uma criação pronta e ajusta texto, preço e identidade dentro do app.</p></div></details>
       <details><summary><span class="q">O plano grátis inclui vídeos?<svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><div class="a"><p>O plano gratuito começa com posts de imagem. Vídeos e maior volume ficam nos planos pagos.</p></div></details>
@@ -554,17 +554,19 @@
 
   /* Link ou @ → registra e vai para a página de validação */
   var DEMO=!!document.querySelector('[data-demo-flag]');
+function ev(e){if(DEMO)return;try{var b=JSON.stringify({etapa:'evento',evento:e,lp:'site'});navigator.sendBeacon?navigator.sendBeacon('/api/lead',new Blob([b],{type:'application/json'})):fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json'},body:b,keepalive:true})}catch(x){}}
+try{if(!sessionStorage.getItem('iris-lp-v-site')){sessionStorage.setItem('iris-lp-v-site','1');ev('visita')}}catch(x){}
   function wire(formId,inputId,hintId){
     var form=$('#'+formId), inp=$('#'+inputId), hint=$('#'+hintId), btn=$('button[type="submit"]',form);
     form.addEventListener('submit',function(ev){
       ev.preventDefault();
       var v=inp.value.trim().replace(/^https?:\/\//,'').replace(/\/$/,'');
-      if(!v){try{sessionStorage.removeItem('iris-loja')}catch(e){}location.href=DEMO?'obrigado.html':'/app/#/start';return}
+      if(!v){ev('clique');try{sessionStorage.removeItem('iris-loja')}catch(e){}location.href=DEMO?'obrigado.html':'/app/#/start?lp=site';return}
 if(!/\.[a-z]{2,}/i.test(v)){hint.textContent='Cole o endereço do site, como sualoja.com.br, ou deixe em branco.';inp.classList.add('err');inp.focus();return}
-      hint.textContent='';inp.classList.remove('err');btn.setAttribute('aria-busy','true');
-      var go=function(){try{sessionStorage.setItem('iris-loja',v);sessionStorage.setItem('iris-demo',DEMO?'1':'')}catch(e){}location.href=DEMO?'obrigado.html':'/app/#/start?loja='+encodeURIComponent(v)};
+      hint.textContent='';inp.classList.remove('err');btn.setAttribute('aria-busy','true');ev('clique');
+      var go=function(){try{sessionStorage.setItem('iris-loja',v);sessionStorage.setItem('iris-demo',DEMO?'1':'')}catch(e){}location.href=DEMO?'obrigado.html':'/app/#/start?lp=site&loja='+encodeURIComponent(v)};
       if(DEMO){setTimeout(go,600);return}
-      fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({loja:v,etapa:'loja',origem:location.href,ts:new Date().toISOString()})})
+      fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({loja:v,etapa:'loja',lp:'site',origem:location.href,ts:new Date().toISOString()})})
         .then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(go)
         .catch(function(){btn.removeAttribute('aria-busy');hint.textContent='Não conseguimos registrar agora. Verifique a conexão e tente de novo.'});
     });

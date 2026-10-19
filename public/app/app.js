@@ -60,6 +60,7 @@
 
   async function viewStart(r) {
     const o = ONB.get();
+    if (r.q.get('lp')) ss.set('iris-lp', r.q.get('lp').replace(/[^a-z0-9-]/gi, '').slice(0, 30));
     const loja = r.q.get('loja') || ss.get('iris-loja') || o.store || '';
     if (loja && !o.store) { o.store = loja; ONB.set(o); }
     if (me.user && me.brand && !o.step) { location.hash = '#/home'; return; }
@@ -336,6 +337,7 @@
       R.done('art', 'Paleta, fonte e hook aplicados');
       if (reel) { if (reel.spec?.mock) R.done('reel', 'Prévia animada pronta (vídeo real quando a chave do Higgsfield for ligada)'); else if (reel.status === 'failed') R.fail('reel', 'O vídeo falhou; a capa e a legenda estão prontas'); else R.done('reel', 'Enviado para o gerador. Fica pronto em 1 a 3 minutos'); }
       R.finish(); R.note('Pronto. Essa é a capa do seu carrossel.');
+      try { const b = JSON.stringify({ etapa: 'evento', evento: 'cadastro', lp: ss.get('iris-lp') || 'direto' }); navigator.sendBeacon ? navigator.sendBeacon('/api/lead', new Blob([b], { type: 'application/json' })) : fetch('/api/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, body: b }); } catch { }
       ONB.set({ step: 'result', ids: contents.map(c => c.id) }); ss.del('iris-loja');
       await loadMe();
       $('#run').insertAdjacentHTML('beforeend', '<button class="btn btn-primary btn-block" id="see" style="margin-top:4px">Ver meu conteúdo</button>');

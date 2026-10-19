@@ -9,6 +9,20 @@ export async function onRequestPost({ request, env }) {
   try { data = await request.json(); } catch { return json({ ok: false, error: 'invalid_json' }, 400); }
   if (data.fax) return json({ ok: true }); // honeypot
 
+  // eventos das landing pages de validação: visita, clique, cadastro. Soma por página e por dia.
+  if (data.etapa === 'evento') {
+    const lp = String(data.lp || 'site').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30) || 'site';
+    const ev = ['visita', 'clique', 'cadastro'].includes(data.evento) ? data.evento : null;
+    if (!ev) return json({ ok: false, error: 'invalid_evento' }, 400);
+    if (/bot|crawl|spider|preview|headless/i.test(request.headers.get('user-agent') || '')) return json({ ok: true, ignored: 'bot' });
+    if (env.LEADS) {
+      const key = `stat:${lp}:${ev}:${new Date().toISOString().slice(0, 10)}`;
+      const n = Number(await env.LEADS.get(key)) || 0;
+      await env.LEADS.put(key, String(n + 1));
+    }
+    return json({ ok: true });
+  }
+
   const loja = String(data.loja || '').trim().replace(/^https?:\/\//, '').slice(0, 200);
   const contato = String(data.contato || '').trim().slice(0, 120);
   const etapa = data.etapa === 'contato' ? 'contato' : 'loja';
@@ -25,6 +39,7 @@ export async function onRequestPost({ request, env }) {
     loja,
     contato,
     origem: String(data.origem || '').slice(0, 300),
+    lp: String(data.lp || 'site').slice(0, 30),
     ua: request.headers.get('user-agent') || '',
     pais: request.cf?.country || '',
     ts: new Date().toISOString(),

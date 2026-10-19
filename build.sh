@@ -12,4 +12,5 @@ node scripts/check-playbook.mjs > /dev/null || { node scripts/check-playbook.mjs
 } > public/index.html
 mkdir -p dist
 { cat src/head.html; sed -e 's|<a class="skip" href="#main">|<span hidden data-demo-flag></span><a class="skip" href="#main">|' src/body.html; } > dist/artifact.html
+node scripts/build-lps.mjs
 echo "index.html e dist/artifact.html gerados"
