@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 
 const LPS = [
   {
-    slug: 'moda', foto: 'moda', pos: '50% 20%', loja: 'atelienuvem',
+    slug: 'moda', foto: 'moda', pos: '50% 20%', kw: 'posts para loja de roupa, conteúdo para loja de moda, posts que vendem roupa, carrossel para loja de roupa, reels para loja de moda, Instagram para boutique', loja: 'atelienuvem',
     titulo: 'Íris para lojas de moda: post da peça nova no mesmo dia',
     descricao: 'Chegou coleção nova e o post ficou pra amanhã? A Íris transforma a foto da peça em post, carrossel e reels com a cara da sua loja.',
     eyebrow: 'Para lojas de moda', h1: ['Chegou peça nova', 'e o post ficou pra amanhã?'],
@@ -15,7 +15,7 @@ const LPS = [
     faq: [['Quanto tempo leva?', 'O post e o carrossel ficam prontos em cerca de dois minutos. O reels leva de 1 a 3 minutos.'], ['Preciso saber design?', 'Não. Você parte de uma criação pronta, com as cores e a fonte da sua loja, e só ajusta o texto se quiser.'], ['Funciona com foto de celular?', 'Funciona. Com boa luz e a peça inteira aparecendo, a Íris monta a arte em volta dela sem mudar cor, estampa ou modelagem.']],
   },
   {
-    slug: 'semijoias', foto: 'joias', pos: '50% 45%', loja: 'ouromiudo',
+    slug: 'semijoias', foto: 'joias', pos: '50% 45%', kw: 'posts para semijoias, foto de semijoias para Instagram, conteúdo para loja de acessórios, posts que vendem semijoias, carrossel de semijoias', loja: 'ouromiudo',
     titulo: 'Íris para semijoias: sua peça com cara de loja premium',
     descricao: 'Peça pequena em foto de celular perde brilho e detalhe. A Íris monta a arte com as cores da sua marca e coloca a peça em destaque, sem estúdio.',
     eyebrow: 'Para semijoias e acessórios', h1: ['Sua peça é linda.', 'A foto não está vendendo.'],
@@ -26,7 +26,7 @@ const LPS = [
     faq: [['A Íris edita a foto da peça?', 'A Íris não altera a peça: cor, pedra e formato continuam como na sua foto. Ela monta a arte em volta, com as cores e a fonte da sua marca.'], ['Que foto funciona melhor?', 'Peça bem iluminada, de preferência com luz natural e fundo liso. Pode ser na mão ou no balcão.'], ['Serve para kits e conjuntos?', 'Serve. Você pode mandar a foto do kit e pedir um carrossel mostrando cada peça.']],
   },
   {
-    slug: 'lojistas', foto: 'beleza', pos: '50% 55%', loja: 'botanicalis',
+    slug: 'lojistas', foto: 'beleza', pos: '50% 55%', kw: 'social media barato, criar posts com IA, posts para Instagram de loja, alternativa a social media, conteúdo para lojistas', loja: 'botanicalis',
     titulo: 'Íris: conteúdo de loja grande a partir de R$ 59 por mês',
     descricao: 'Pagar social media e fotógrafo todo mês pesa no caixa. A Íris cria post, carrossel e reels da sua loja a partir da foto do produto.',
     eyebrow: 'Para lojas que vendem no Instagram', h1: ['Conteúdo de loja grande,', 'a partir de R$ 59 por mês.'],
@@ -89,7 +89,12 @@ for (const p of LPS) {
   const h = head.replace(/<title>[^<]*<\/title>/, `<title>${esc(p.titulo)}</title>`)
     .replace(/(<meta name="description" content=")[^"]*"/, `$1${esc(p.descricao)}"`)
     .replace(/(<meta property="og:description" content=")[^"]*"/, `$1${esc(p.descricao)}"`)
-    .replace(/(<meta property="og:title" content=")[^"]*"/, `$1${esc(p.titulo)}"`);
+    .replace(/(<meta property="og:title" content=")[^"]*"/, `$1${esc(p.titulo)}"`)
+    .replace(/(<meta name="twitter:title" content=")[^"]*"/, `$1${esc(p.titulo)}"`)
+    .replace(/(<meta name="twitter:description" content=")[^"]*"/, `$1${esc(p.descricao)}"`)
+    .replace(/(<meta property="og:url" content=")[^"]*"/, `$1https://iriscria.pages.dev/para/${p.slug}"`)
+    .replace(/(<meta name="keywords" content=")[^"]*"/, `$1${esc(p.kw)}"`)
+    .replace(/<link rel="canonical"[^>]*>\n?/, '');
   const html = `<!doctype html>
 <html lang="pt-BR">
 <head>
