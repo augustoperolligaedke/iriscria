@@ -526,12 +526,26 @@
   const nf = n => n == null ? '–' : n >= 10000 ? (n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil' : Number(n).toLocaleString('pt-BR');
   // a métrica que importa em cada etapa: topo = quanta gente nova viu; meio = quem guardou e mandou; fundo = quem foi ao perfil para comprar
   const FN_METRICS = { reel: [['reach', 'alcance'], ['views', 'visualizações']], carousel: [['saved', 'salvamentos'], ['shares', 'compartilhamentos']], feed: [['interactions', 'interações'], ['profile_visits', 'visitas ao perfil']] };
+  // ícones de linha (mesmo estilo dos demais) para etapas e métricas do funil
+  const FNI = {
+    reel: '<rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 8.5h18M8 3l3 5.5M13.5 3l3 5.5"/><path d="m10.5 12 4 2.5-4 2.5z"/>',
+    carousel: '<rect x="6" y="4" width="12" height="16" rx="2"/><path d="M3 7v10M21 7v10"/>',
+    feed: '<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><circle cx="9" cy="9" r="1.8"/><path d="m4 17 5-5 4 4 2.5-2.5L20 18"/>',
+    reach: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
+    views: '<circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5z"/>',
+    saved: '<path d="M6 3.5h12v17l-6-4.6-6 4.6z"/>',
+    shares: '<path d="M21 3 10 14M21 3l-6.8 18-3.2-7-7-3.2z"/>',
+    interactions: '<path d="M12 20s-7-4.4-9.2-8.6C1.1 8.1 3 4.5 6.6 4.5c2 0 3.3 1.1 4.1 2.3h.6c.8-1.2 2.1-2.3 4.1-2.3 3.6 0 5.5 3.6 3.8 6.9C19 15.6 12 20 12 20z"/>',
+    profile_visits: '<circle cx="12" cy="8" r="4"/><path d="M4 20.5c1.4-3.6 4.4-5.5 8-5.5s6.6 1.9 8 5.5"/>',
+  };
+  const fnIcon = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${FNI[k]}</svg>`;
   function fnRow(f, st, goal, metrics) {
     const posts = st?.posts || 0, pct = Math.min(100, Math.round(posts / goal * 100));
-    return `<div class="fn-row"><div class="fn-name"><b>${FORMAT[f]}</b><small>${STAGE[f][1]} · ${STAGE[f][2]}</small></div>
+    return `<div class="fn-row st-${STAGE[f][0]}"><div class="fn-name"><span class="fn-ic">${fnIcon(f)}</span><div><b>${FORMAT[f]}</b><small>${STAGE[f][1]} · ${STAGE[f][2]}</small></div></div>
       <div class="fn-posts"><div class="bar"><i style="width:${pct}%"></i></div><small>${posts} de ${goal} na semana</small></div>
-      ${FN_METRICS[f].map(([k, l]) => `<div class="fn-m"><b>${metrics ? nf(metrics[k]) : '–'}</b><small>${l}</small></div>`).join('')}</div>`;
+      ${FN_METRICS[f].map(([k, l]) => `<div class="fn-m"><b>${metrics ? nf(metrics[k]) : '–'}</b><small>${fnIcon(k)}${l}</small></div>`).join('')}</div>`;
   }
+
   async function loadInsights(goal, done) {
     const foot = $('#fn-foot'); if (!foot) return;
     const ig = me.instagram || {};

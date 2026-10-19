@@ -391,3 +391,16 @@ textarea.input{min-height:96px;resize:vertical}
 .igm.reel{width:fit-content;max-width:100%}
 .igm-reel{height:min(60vh,560px);width:auto;max-height:none}
 @media (max-width:719px){.igm-reel{height:min(52vh,440px)}}
+
+/* funil: cor e ícone por etapa (mesmas cores das etiquetas topo/meio/fundo) */
+.fn-row{--st:#2B5BD7;--st-bg:#E8F0FF}
+.fn-row.st-meio{--st:#C27C0E;--st-bg:#FFF1D6}
+.fn-row.st-fundo{--st:#2E7D4F;--st-bg:#E6F6EC}
+@media (prefers-color-scheme:dark){.fn-row{--st:#7EA6FF;--st-bg:#1E2A44}.fn-row.st-meio{--st:#F2B44E;--st-bg:#3A2E17}.fn-row.st-fundo{--st:#6FCF97;--st-bg:#173326}}
+.fn-name{display:flex;gap:10px;align-items:center}
+.fn-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--st-bg);color:var(--st);flex:none}
+.fn-ic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.fn-row .fn-posts .bar i{background:var(--st)}
+.fn-m small{display:flex;align-items:center;gap:4px}
+.fn-m small svg{width:13px;height:13px;fill:none;stroke:var(--st);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.fn-row .fn-m b{color:var(--ink)}
