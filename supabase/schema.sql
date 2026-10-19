@@ -134,11 +134,26 @@ CREATE TABLE IF NOT EXISTS ig_insights_cache (
 -- migrations/0005_brand_strategy.sql
 ALTER TABLE brands ADD COLUMN IF NOT EXISTS strategy TEXT;
 
+-- migrations/0006_meta_catalog.sql
+CREATE TABLE IF NOT EXISTS meta_accounts (
+  user_id TEXT PRIMARY KEY,
+  fb_user_id TEXT,
+  ig_business_id TEXT,
+  ig_username TEXT,
+  catalog_id TEXT,
+  catalog_name TEXT,
+  access_token TEXT NOT NULL,
+  expires_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
 -- segurança
 ALTER TABLE brands ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ig_insights_cache ENABLE ROW LEVEL SECURITY;
 ALTER TABLE instagram_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE meta_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE otp_codes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;

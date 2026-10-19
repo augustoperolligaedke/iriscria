@@ -631,12 +631,12 @@ section[id],#top{scroll-margin-top:96px}
     <div class="stack" style="gap:24px">
       <span class="eyebrow">Para lojas que vendem no Instagram</span>
       <h1>Chegou produto novo?<br>O post sai hoje.</h1>
-      <p class="lead">Moda, semijoias, beleza, casa ou presentes: mande a foto do produto e a Íris cria o post, o carrossel e o reels com a cara da sua loja, sem ensaio de fotos. Você ajusta e aprova pelo celular.</p>
+      <p class="lead">Moda, semijoias, beleza, casa ou presentes: mande a foto do produto ou conecte seu site ou Instagram, e a Íris cria o post, o carrossel e o reels com a cara da sua loja, sem ensaio de fotos. Você ajusta e aprova pelo celular.</p>
       <form class="hero-cta" id="hero-form" novalidate>
         <div class="hero-form with-icon">
           <svg class="in-icon" aria-hidden="true"><use href="#i-ig"/></svg>
-          <label class="sr" for="hero-loja">Site da sua loja (opcional)</label>
-          <input class="input" id="hero-loja" name="loja" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="Site da loja (opcional)">
+          <label class="sr" for="hero-loja">@ do Instagram ou site da loja</label>
+          <input class="input" id="hero-loja" name="loja" type="text" inputmode="email" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="@sualoja ou sualoja.com.br">
           <button class="btn btn-primary" type="submit"><span class="spin" aria-hidden="true"></span><span>Criar meus primeiros posts</span></button>
         </div>
         <ul class="checks" aria-label="Condições"><li><svg aria-hidden="true"><use href="#i-check"/></svg>2 posts grátis</li><li><svg aria-hidden="true"><use href="#i-check"/></svg>Sem cartão</li></ul>
@@ -885,8 +885,8 @@ section[id],#top{scroll-margin-top:96px}
       <form class="hero-cta" id="offer-form" novalidate>
         <div class="hero-form with-icon">
           <svg class="in-icon" aria-hidden="true"><use href="#i-ig"/></svg>
-          <label class="sr" for="offer-loja">Site da sua loja (opcional)</label>
-          <input class="input" id="offer-loja" name="loja" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="Site da loja (opcional)">
+          <label class="sr" for="offer-loja">@ do Instagram ou site da loja</label>
+          <input class="input" id="offer-loja" name="loja" type="text" inputmode="email" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="@sualoja ou sualoja.com.br">
           <button class="btn btn-primary" type="submit"><span class="spin" aria-hidden="true"></span><span>Criar meus primeiros posts</span></button>
         </div>
         <ul class="checks" aria-label="Condições"><li><svg aria-hidden="true"><use href="#i-check"/></svg>2 posts grátis</li><li><svg aria-hidden="true"><use href="#i-check"/></svg>Sem cartão</li></ul>
@@ -1116,9 +1116,10 @@ try{if(!sessionStorage.getItem('iris-lp-v-site')){sessionStorage.setItem('iris-l
     var form=$('#'+formId), inp=$('#'+inputId), hint=$('#'+hintId), btn=$('button[type="submit"]',form);
     form.addEventListener('submit',function(ev){
       ev.preventDefault();
-      var v=inp.value.trim().replace(/^https?:\/\//,'').replace(/\/$/,'');
+      var v=inp.value.trim().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/$/,'');
+      var ig=/^(?:instagram\.com\/|@)([a-z0-9._]{2,30})/i.exec(v); if(ig)v='@'+ig[1];
       if(!v){ev('clique');try{sessionStorage.removeItem('iris-loja')}catch(e){}location.href=DEMO?'obrigado.html':'/app/#/start?lp=site';return}
-if(!/\.[a-z]{2,}/i.test(v)){hint.textContent='Cole o endereço do site, como sualoja.com.br, ou deixe em branco.';inp.classList.add('err');inp.focus();return}
+if(!ig&&!/\.[a-z]{2,}/i.test(v)){hint.textContent='Digite o @ do Instagram ou o site, como sualoja.com.br.';inp.classList.add('err');inp.focus();return}
       hint.textContent='';inp.classList.remove('err');btn.setAttribute('aria-busy','true');ev('clique');
       var go=function(){try{sessionStorage.setItem('iris-loja',v);sessionStorage.setItem('iris-demo',DEMO?'1':'')}catch(e){}location.href=DEMO?'obrigado.html':'/app/#/start?lp=site&loja='+encodeURIComponent(v)};
       if(DEMO){setTimeout(go,600);return}

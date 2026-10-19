@@ -21,6 +21,12 @@ TYXTER_WEBHOOK_SECRET=
 # Instagram (app da Meta com o produto "Instagram API with Instagram Login"). Redirect: APP_URL/api/instagram/callback
 IG_APP_ID=
 IG_APP_SECRET=
+# public = qualquer pessoa cria conta pelo Instagram. Vazio = só testadoras (abrem /app/#/start?beta=ig).
+IG_SIGNUP=
+# Sacolinha do Instagram (Facebook Login no mesmo app da Meta). Redirect: APP_URL/api/meta/callback
+META_APP_ID=
+META_APP_SECRET=
+META_GRAPH_VERSION=v23.0
 # Pix (AbacatePay, API v2). Crie um produto avulso por plano (e um anual opcional) e cole os ids.
 # Webhook: APP_URL/api/billing/abacatepay?webhookSecret=<ABACATE_WEBHOOK_SECRET>, evento checkout.completed
 ABACATE_API_KEY=

@@ -60,8 +60,8 @@ const CSS = `<style>
 </style>`;
 
 const form = (id, lp) => `<form class="hero-cta" id="${id}-form" novalidate>
-        <div class="hero-form"><label class="sr" for="${id}-loja">Site da sua loja (opcional)</label>
-          <input class="input" id="${id}-loja" name="loja" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="Site da loja (opcional)">
+        <div class="hero-form"><label class="sr" for="${id}-loja">@ do Instagram ou site da loja</label>
+          <input class="input" id="${id}-loja" name="loja" type="text" inputmode="email" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="@sualoja ou sualoja.com.br">
           <button class="btn btn-primary" type="submit"><span class="spin" aria-hidden="true"></span><span>Criar meu primeiro post grátis</span></button></div>
         <ul class="checks" aria-label="Condições"><li><svg aria-hidden="true"><use href="#i-check"/></svg>2 posts grátis</li><li><svg aria-hidden="true"><use href="#i-check"/></svg>Sem cartão</li></ul>
         <p class="hint" id="${id}-hint" aria-live="polite"></p></form>`;
@@ -75,8 +75,9 @@ var LP=${JSON.stringify(lp)};
 function ev(e){try{var b=JSON.stringify({etapa:'evento',evento:e,lp:LP});if(navigator.sendBeacon){navigator.sendBeacon('/api/lead',new Blob([b],{type:'application/json'}))}else{fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json'},body:b,keepalive:true})}}catch(x){}}
 try{if(!sessionStorage.getItem('iris-lp-v-'+LP)){sessionStorage.setItem('iris-lp-v-'+LP,'1');ev('visita')}}catch(x){ev('visita')}
 function wire(id){var f=document.getElementById(id+'-form'),i=document.getElementById(id+'-loja'),h=document.getElementById(id+'-hint'),b=f.querySelector('button');
-f.addEventListener('submit',function(e){e.preventDefault();var v=i.value.trim().replace(/^https?:\\/\\//,'').replace(/\\/$/,'');
-if(v&&!/\\.[a-z]{2,}/i.test(v)){h.textContent='Cole o endereço do site, como sualoja.com.br, ou deixe em branco.';i.focus();return}
+f.addEventListener('submit',function(e){e.preventDefault();var v=i.value.trim().replace(/^https?:\\/\\//,'').replace(/^www\\./,'').replace(/\\/$/,'');
+var ig=/^(?:instagram\\.com\\/|@)([a-z0-9._]{2,30})/i.exec(v);if(ig)v='@'+ig[1];
+if(v&&!ig&&!/\\.[a-z]{2,}/i.test(v)){h.textContent='Digite o @ do Instagram ou o site, como sualoja.com.br.';i.focus();return}
 b.setAttribute('aria-busy','true');ev('clique');try{sessionStorage.setItem('iris-lp',LP)}catch(x){}
 var go=function(){location.href='/app/#/start?lp='+LP+(v?'&loja='+encodeURIComponent(v):'')};
 if(!v){setTimeout(go,150);return}

@@ -61,13 +61,21 @@
   async function viewStart(r) {
     const o = ONB.get();
     if (r.q.get('lp')) ss.set('iris-lp', r.q.get('lp').replace(/[^a-z0-9-]/gi, '').slice(0, 30));
+    if (r.q.get('beta') === 'ig') try { localStorage.setItem('iris-beta-ig', '1'); } catch {}
     const loja = r.q.get('loja') || ss.get('iris-loja') || o.store || '';
     if (loja && !o.store) { o.store = loja; ONB.set(o); }
     if (me.user && me.brand && !o.step) { location.hash = '#/home'; return; }
     const step = o.step || (o.store ? 'analyze' : 'store');
-    if (r.q.get('ig')) igToast(r.q.get('ig'));
+    const igQ = r.q.get('ig'), sacQ = r.q.get('sacolinha');
+    if (igQ === 'ok' && o.step === 'ig' && me.brand) { ss.del('iris-onb'); location.hash = '#/home'; return; }
+    if (igQ === 'ok' && o.step === 'ig') { history.replaceState(null, '', location.pathname + '#/start'); return stepIgImport(o); }
+    if (sacQ) { history.replaceState(null, '', location.pathname + '#/start');
+      if (sacQ === 'ok') return stepSacolinha(o);
+      toast({ sem_catalogo: 'Não achei uma loja do Instagram com catálogo nessa conta.', sem_conta: 'Essa conta do Facebook não tem Instagram comercial ligado.', cancelado: 'Importação cancelada.' }[sacQ] || 'Não consegui abrir a sacolinha. Tente de novo.', 4500); }
+    if (igQ) igToast(igQ);
     if (r.q.get('google')) googleToast(r.q.get('google'));
     if (step === 'store') return stepStore(o);
+    if (step === 'ig') return stepStore({ ...o, step: 'store' });
     if (step === 'analyze') return stepAnalyze(o);
     if (step === 'brand') return stepBrand(o);
     if (step === 'product') return stepProduct(o);
@@ -77,27 +85,69 @@
     if (step === 'result') return stepResult(o);
     if (step === 'instagram') return stepInstagram(o, r);
   }
+  const igBeta = () => { try { return !!(me?.instagram?.enabled && (me.instagram.signup || localStorage.getItem('iris-beta-ig'))); } catch { return false; } };
+  const OPI = {
+    ig: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/>',
+    foto: '<rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/>',
+    site: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9s1.3-6.3 3.8-9z"/>',
+  };
   function stepStore(o) {
+    const ig = igBeta();
     main.innerHTML = `<img class="mark" src="/assets/iris-mark.png" alt="">
-      <div class="stack center"><h1>Vamos criar seu primeiro post.</h1><p class="lead">Leva dois minutos. Escolha como começar.</p></div>
-      <div class="start-opts">
-        <button class="start-opt on" type="button" data-opt="foto"><b>Começar com uma foto</b><span>Mande a foto de uma peça. As cores da marca saem da foto.</span></button>
-        <button class="start-opt" type="button" data-opt="site"><b>Tenho site ou loja virtual</b><span>Eu leio logo, cores, fonte e o catálogo com preços.</span></button>
+      <div class="stack center"><h1>Vamos criar seu primeiro post.</h1><p class="lead">Escolha como começar. Leva menos de dois minutos.</p></div>
+      <div class="start-opts ${ig ? 'three' : ''}">
+        ${ig ? `<button class="start-opt" type="button" data-opt="ig"><span class="oi ig"><svg viewBox="0 0 24 24">${OPI.ig}</svg></span><b>Conectar meu Instagram</b><span>Puxo seu nome, suas cores e seus posts. O jeito mais rápido.</span></button>` : ''}
+        <button class="start-opt" type="button" data-opt="foto"><span class="oi"><svg viewBox="0 0 24 24">${OPI.foto}</svg></span><b>Começar com uma foto</b><span>Mande a foto de um produto. As cores saem dela.</span></button>
+        <button class="start-opt" type="button" data-opt="site"><span class="oi"><svg viewBox="0 0 24 24">${OPI.site}</svg></span><b>Tenho site ou loja virtual</b><span>Leio logo, cores, fonte e o catálogo com preços.</span></button>
       </div>
-      <form class="card" id="f">
-        <div class="field" id="f-foto"><label for="name">Nome da loja</label><input class="input" id="name" placeholder="Ex.: Closet da Ju" autocomplete="organization" value="${esc(o.brand?.name || '')}"></div>
+      <form class="card" id="f" hidden>
+        <div class="field" id="f-foto" hidden><label for="name">Nome da loja</label><input class="input" id="name" placeholder="Ex.: Closet da Ju" autocomplete="organization" value="${esc(o.brand?.name || '')}"></div>
         <div class="field" id="f-site" hidden><label for="site">Site da loja</label><input class="input" id="site" placeholder="sualoja.com.br" inputmode="url" autocapitalize="none" value="${esc(/\./.test(o.store || '') ? o.store : '')}"></div>
         <p class="hint" id="h"></p>
         <button class="btn btn-primary btn-block" type="submit"><span class="spin"></span>Continuar</button></form>
       ${me.user ? '' : '<p class="micro center">Já tem conta? <a href="#/login">Entrar</a></p>'}`;
-    let opt = /\./.test(o.store || '') ? 'site' : 'foto';
-    const setOpt = v => { opt = v; $$('.start-opt').forEach(x => x.classList.toggle('on', x.dataset.opt === v)); $('#f-foto').hidden = v !== 'foto'; $('#f-site').hidden = v !== 'site'; (v === 'site' ? $('#site') : $('#name')).focus(); };
-    $$('.start-opt').forEach(x => x.onclick = () => setOpt(x.dataset.opt)); setOpt(opt);
+    let opt = null;
+    const setOpt = v => {
+      if (v === 'ig') { ONB.set({ ...o, step: 'ig' }); location.href = '/api/instagram/connect?back=start'; return; }
+      opt = v; $$('.start-opt').forEach(x => x.classList.toggle('on', x.dataset.opt === v)); $('#f').hidden = false; $('#f-foto').hidden = v !== 'foto'; $('#f-site').hidden = v !== 'site'; (v === 'site' ? $('#site') : $('#name')).focus(); };
+    $$('.start-opt').forEach(x => x.onclick = () => setOpt(x.dataset.opt));
+    if (/\./.test(o.store || '')) setOpt('site');
     $('#f').onsubmit = e => { e.preventDefault();
       if (opt === 'site') { const v = $('#site').value.trim(); if (!/\.[a-z]{2,}/i.test(v)) { $('#h').textContent = 'Cole o endereço do site, como sualoja.com.br.'; return; } ONB.set({ ...o, store: v, step: 'analyze' }); return render(); }
       const name = $('#name').value.trim(); if (name.length < 2) { $('#h').textContent = 'Digite o nome da loja.'; return; }
-      // sem site: a marca começa do nome, as cores saem da foto do produto e a estratégia é confirmada na próxima tela
       ONB.set({ ...o, store: '', brand: { name, colors: { primary: '#1F140D', secondary: '#FFFFFF', accent: '#FFD83A' }, font: 'Manrope', tone: '', icp: '', strategy: { close_channel: 'whatsapp', emoji: true } }, products: [], meta: { colors_from_photo: true, no_site: true }, step: 'brand' }); render(); };
+  }
+  // Volta do login do Instagram: lê perfil, cores da foto do perfil, posts e, se houver, o site da bio.
+  async function stepIgImport(o) {
+    await loadMe();
+    main.innerHTML = `${stepsBar(1)}<div id="run"></div>`;
+    const R = runPanel($('#run'), { title: 'Lendo seu Instagram', tasks: [{ id: 'conn', label: 'Conectar sua conta' }, { id: 'prof', label: 'Ler seu perfil' }, { id: 'cores', label: 'Tirar as cores da foto do perfil' }, { id: 'posts', label: 'Separar seus posts com produto' }, { id: 'site', label: 'Ler o site da bio' }, { id: 'marca', label: 'Montar sua marca' }] });
+    R.done('conn', me.instagram?.account ? '@' + me.instagram.account.username : 'Conectado');
+    try {
+      R.run('prof'); const { profile: pf } = await api('/instagram/profile');
+      R.done('prof', [pf.name || pf.username, pf.followers != null ? nf(pf.followers) + ' seguidores' : null].filter(Boolean).join(' · '));
+      R.run('cores'); let colors = null;
+      if (pf.picture) { const pal = await logoPalette([pf.picture], null, []).catch(() => null) || await photoPalette('/api/img?u=' + encodeURIComponent(pf.picture)).catch(() => null); colors = pal?.colors || null; }
+      colors ? R.done('cores', 'Paleta tirada da foto do perfil') : R.skip('cores', 'Sem foto de perfil: as cores saem da foto do produto');
+      R.run('posts'); const price = t => (String(t || '').match(/r\$\s?\d+(?:[.,]\d{2})?/i) || [])[0] || null;
+      const fromIg = (pf.media || []).filter(m => m.image).slice(0, 12).map(m => ({ name: (m.caption || '').split(/\n|[.!?]/)[0].replace(/[#@]\S+/g, '').trim().slice(0, 60) || 'Post do Instagram', price: price(m.caption), image_url: m.image, source: 'instagram' }));
+      fromIg.length ? R.done('posts', `${fromIg.length} posts com foto para escolher`) : R.skip('posts', 'Sem posts com foto ainda');
+      let site = null; const web = pf.website && /\.[a-z]{2,}/i.test(pf.website) ? pf.website : null;
+      if (web) { R.run('site'); site = await api('/brand/analyze', { method: 'POST', body: { store: web } }).catch(() => null); site ? R.done('site', site.meta?.catalog ? `${site.products.length} produtos com preço` : 'Lido') : R.skip('site', 'Não consegui ler o site'); }
+      else R.skip('site', 'Sem site na bio');
+      const b = { ...(site?.brand || {}), name: site?.brand?.name || pf.name || pf.username, instagram: pf.username, logo_url: pf.picture || site?.brand?.logo_url || null,
+        colors: colors || site?.brand?.colors || { primary: '#1F140D', secondary: '#FFFFFF', accent: '#FFD83A' }, font: site?.brand?.font || 'Manrope', strategy: site?.brand?.strategy || { close_channel: 'direct', emoji: true } };
+      R.done('marca', b.name); R.finish(); await pause(1000);
+      ONB.set({ ...o, store: web || '', brand: b, products: [...(site?.products || []), ...fromIg], meta: { ...(site?.meta || {}), colors_from: colors ? 'foto do perfil' : null, colors_from_photo: !colors, from_ig: true }, step: 'brand' }); render();
+    } catch (e) { R.fail('prof', e.message); await pause(1200); ONB.set({ ...o, step: 'store' }); render(); }
+  }
+  // Volta do login do Facebook: lista a sacolinha e coloca os produtos na escolha.
+  async function stepSacolinha(o) {
+    main.innerHTML = `${stepsBar(3)}<div id="run"></div>`;
+    const R = runPanel($('#run'), { title: 'Abrindo sua sacolinha', tasks: [{ id: 'cat', label: 'Ler o catálogo da loja do Instagram' }, { id: 'sel', label: 'Separar produtos com foto e preço' }] });
+    try { R.run('cat'); const d = await api('/meta/catalog'); R.done('cat', d.catalog || 'Catálogo lido'); R.done('sel', `${d.products.length} produtos disponíveis`); R.finish(); await pause(900);
+      ONB.set({ ...o, products: [...d.products.map(p => ({ ...p, source: 'sacolinha' })), ...(o.products || [])], meta: { ...(o.meta || {}), catalog: 'sacolinha' }, step: 'product' }); render();
+    } catch (e) { R.fail('cat', e.message); await pause(1400); ONB.set({ ...o, step: 'product' }); render(); }
   }
 
   /* ---------- "Íris trabalhando": lista de etapas com resultado real e transformação da foto ---------- */
@@ -125,7 +175,7 @@
     main.innerHTML = `${stepsBar(1)}<div id="run"></div>`;
     const host = String(o.store || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
     const R = runPanel($('#run'), { title: `Lendo ${host}`, tasks: [
-      { id: 'open', label: 'Abrir o site da loja' }, { id: 'logo', label: 'Ler o logo e as cores' }, { id: 'font', label: 'Ler a fonte e o jeito de falar' },
+      { id: 'open', label: host.startsWith('@') ? 'Achar a loja pelo @' : 'Abrir o site da loja' }, { id: 'logo', label: 'Ler o logo e as cores' }, { id: 'font', label: 'Ler a fonte e o jeito de falar' },
       { id: 'cat', label: 'Encontrar o catálogo e os preços' }, { id: 'sell', label: 'Entender como você vende' }, { id: 'brand', label: 'Montar sua marca' }] });
     // o servidor faz tudo em paralelo: as etapas entram em andamento e só ficam prontas com o resultado
     const order = ['open', 'logo', 'font', 'cat', 'sell']; let k = 0; R.run('open');
@@ -256,19 +306,29 @@
     return { ...b, strategy: readStrategy(b), name: $('#b-name').value.trim(), colors: { primary: $('#c-primary').value, secondary: $('#c-secondary').value, accent: $('#c-accent').value }, font: $('#b-font').value, tone: $('#b-tone').value.trim(), icp: $('#b-icp').value.trim(), instagram: $('#b-ig').value.trim().replace(/^@/, '') };
   }
   function stepBrand(o) {
-    main.innerHTML = `${stepsBar(2)}<div class="stack"><span class="eyebrow">Sua marca</span><h1>Foi isso que eu entendi.</h1><p class="lead">Confira e ajuste. Vou usar em todo conteúdo.</p></div>
-      <form class="card" id="f">${brandForm(o.brand, o.meta)}<button class="btn btn-primary btn-block" type="submit">Isso é a minha marca</button><button class="btn btn-ghost btn-block" type="button" id="back">Voltar</button></form>`;
+    const b = o.brand || {}, st = b.strategy || {}, m = o.meta || {}, n = (o.products || []).length;
+    const TIER = { popular: 'Popular', intermediario: 'Intermediário', premium: 'Premium' }, CH = { whatsapp: 'Fecha no WhatsApp', site: 'Fecha no site', direct: 'Fecha no direct', loja: 'Fecha na loja' };
+    const chips = [TIER[st.price_tier], CH[st.close_channel], n ? `${n} produtos encontrados` : null, b.font ? `Fonte ${b.font}` : null].filter(Boolean);
+    main.innerHTML = `${stepsBar(2)}<div class="stack"><span class="eyebrow">Sua marca</span><h1>Foi isso que eu entendi.</h1><p class="lead">${m.no_site ? 'Confira o nome. As cores eu tiro da foto do produto no próximo passo.' : 'Se estiver certo, é só seguir. Dá para ajustar tudo depois.'}</p></div>
+      <form class="card brand-sum" id="f">
+        <div class="bs-head">${b.logo_url ? `<img src="${imgSrc(b.logo_url)}" alt="" onerror="this.remove()">` : `<i style="background:${esc(b.colors?.primary || '#1F140D')}">${esc((b.name || 'L')[0].toUpperCase())}</i>`}
+          <div><b>${esc(b.name || 'Sua loja')}</b>${b.instagram ? `<span>@${esc(b.instagram)}</span>` : ''}</div>
+          ${m.no_site ? '' : `<span class="bs-sw">${['primary', 'secondary', 'accent'].map(k => `<i style="background:${esc(b.colors?.[k] || '#ccc')}"></i>`).join('')}</span>`}</div>
+        ${chips.length ? `<div class="chips bs-chips">${chips.map(c => `<span class="chip" aria-pressed="false">${esc(c)}</span>`).join('')}</div>` : ''}
+        <details ${m.no_site ? 'open' : ''}><summary class="btn btn-ghost btn-sm">Ajustar detalhes</summary><div class="stack" style="padding-top:14px">${brandForm(b, m)}</div></details>
+        <button class="btn btn-primary btn-block" type="submit">Isso é a minha marca</button><button class="btn btn-ghost btn-block" type="button" id="back">Voltar</button></form>`;
     bindBrandForm();
-    $('#f').onsubmit = e => { e.preventDefault(); const nb = readBrandForm(o.brand); const norm = c => ['primary', 'secondary', 'accent'].map(k => String(c?.[k] || '').toLowerCase()).join(), same = norm(nb.colors) === norm(o.brand.colors);
-      ONB.set({ ...o, brand: { ...nb, colors_pending: !!o.meta?.colors_from_photo && same }, step: 'product' }); render(); };
+    $('#f').onsubmit = e => { e.preventDefault(); const nb = readBrandForm(b); const norm = c => ['primary', 'secondary', 'accent'].map(k => String(c?.[k] || '').toLowerCase()).join(), same = norm(nb.colors) === norm(b.colors);
+      ONB.set({ ...o, brand: { ...nb, colors_pending: !!m.colors_from_photo && same }, step: 'product' }); render(); };
     $('#back').onclick = () => { ONB.set({ store: '' }); render(); };
-    if ($('#b-site-go')) $('#b-site-go').onclick = () => { const v = $('#b-site').value.trim(); if (v.length < 4) { $('#b-site').focus(); return; } ONB.set({ store: v, ig_handle: o.brand?.instagram || null, step: 'analyze' }); render(); };
+    if ($('#b-site-go')) $('#b-site-go').onclick = () => { const v = $('#b-site').value.trim(); if (v.length < 4) { $('#b-site').focus(); return; } ONB.set({ store: v, ig_handle: b.instagram || null, step: 'analyze' }); render(); };
   }
   function stepProduct(o) {
     const prods = o.products || [];
     const sel = o.product || {};
-    main.innerHTML = `${stepsBar(3)}<div class="stack"><span class="eyebrow">Primeiro conteúdo</span><h1>Qual produto vamos lançar?</h1><p class="lead">Mande uma foto do celular. Pode ser da galeria ou tirada agora.</p></div>
+    main.innerHTML = `${stepsBar(3)}<div class="stack"><span class="eyebrow">Primeiro conteúdo</span><h1>Qual produto vamos lançar?</h1><p class="lead">${o.meta?.from_ig ? 'Escolha um post seu ou mande uma foto nova.' : 'Mande uma foto do celular. Pode ser da galeria ou tirada agora.'}</p></div>
       <form class="card" id="f">
+        ${igBeta() && me.user && me.sacolinha?.enabled && o.meta?.catalog !== 'sacolinha' ? '<button class="sac-cta" type="button" id="sac"><span class="oi ig"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span><span><b>Importar da sacolinha do Instagram</b><small>Traz fotos, nomes e preços da sua loja</small></span></button>' : ''}
         <label class="upload-cta" id="up"><input type="file" id="file" accept="image/*" hidden><span id="up-in">${o.file_data ? `<img src="${o.file_data}" alt="">` : '<b>Enviar foto da galeria ou câmera</b><small>JPG, PNG ou foto do iPhone</small>'}</span></label>
         ${prods.length ? `<span class="lbl">Ou escolha da sua loja</span>` : ''}
         <div class="grid" id="grid">${prods.map((p, i) => `<button class="pick" type="button" data-i="${i}" aria-pressed="${sel.image_url === p.image_url ? 'true' : 'false'}"><img src="/api/img?u=${encodeURIComponent(p.image_url)}" alt="${esc(p.name)}" loading="lazy" onerror="this.closest('.pick').remove()">${p.price || (p.name && p.name !== 'Produto' && o.meta?.catalog) ? `<span class="cap">${p.price ? `<b>${esc(p.price)}</b>` : ''}<span>${esc(p.name || '')}</span></span>` : ''}</button>`).join('')}
@@ -279,8 +339,8 @@
         <p class="hint" id="h"></p>
         <button class="btn btn-primary btn-block" type="submit">Criar meu reels e carrossel grátis</button>
         <button class="btn btn-ghost btn-block" type="button" id="back">Voltar</button></form>`;
-    let picked = sel.image_url ? { image_url: sel.image_url, name: sel.name, price: sel.price } : null, file = o.file_data ? { data: o.file_data } : null;
-    $$('.pick[data-i]').forEach(b => b.onclick = () => { $$('.pick').forEach(x => x.setAttribute('aria-pressed', 'false')); $('#up').removeAttribute('aria-pressed'); if (file) { file = null; $('#up-in').innerHTML = '<b>Enviar foto da galeria ou câmera</b><small>JPG, PNG ou foto do iPhone</small>'; } b.setAttribute('aria-pressed', 'true'); const p = prods[+b.dataset.i]; picked = { image_url: p.image_url, name: p.name, price: p.price }; file = null; if (!$('#p-name').value) $('#p-name').value = p.name === 'Produto' ? '' : p.name; if (p.price && !$('#p-price').value) $('#p-price').value = p.price; });
+    let picked = sel.image_url ? { image_url: sel.image_url, name: sel.name, price: sel.price, source: sel.source } : null, file = o.file_data ? { data: o.file_data } : null;
+    $$('.pick[data-i]').forEach(b => b.onclick = () => { $$('.pick').forEach(x => x.setAttribute('aria-pressed', 'false')); $('#up').removeAttribute('aria-pressed'); if (file) { file = null; $('#up-in').innerHTML = '<b>Enviar foto da galeria ou câmera</b><small>JPG, PNG ou foto do iPhone</small>'; } b.setAttribute('aria-pressed', 'true'); const p = prods[+b.dataset.i]; picked = { image_url: p.image_url, name: p.name, price: p.price, source: p.source }; file = null; if (!$('#p-name').value) $('#p-name').value = p.name === 'Produto' ? '' : p.name; if (p.price && !$('#p-price').value) $('#p-price').value = p.price; });
     if (file) $('#up').setAttribute('aria-pressed', 'true');
     $('#file').onchange = async e => { const f = e.target.files[0]; if (!f) return; const data = await readPhoto(f); file = { data, type: 'image/jpeg' }; picked = null; $$('.pick').forEach(x => x.setAttribute('aria-pressed', 'false')); $('#up-in').innerHTML = `<img src="${data}" alt=""><small>Toque para trocar</small>`; $('#up').setAttribute('aria-pressed', 'true'); $('#p-name').focus(); };
     $('#f').onsubmit = async e => { e.preventDefault(); const name = $('#p-name').value.trim(); if (!picked && !file) { $('#h').textContent = 'Envie uma foto do produto.'; return; } if (!name) { $('#h').textContent = 'Dê um nome ao produto.'; $('#p-name').focus(); return; }
@@ -289,6 +349,7 @@
       if (brand?.colors_pending) { const pal = await photoPalette(file?.data || picked.image_url).catch(() => null); if (pal) brand = { ...brand, colors: pal.colors, colors_pending: false }; }
       ONB.set({ ...o, brand, product: { ...(picked || {}), name, price: $('#p-price').value.trim() }, file_data: file?.data || null, offer: $('#p-offer').value.trim(), step: me.user ? 'generate' : 'auth' }); render(); };
     $('#back').onclick = () => { ONB.set({ ...o, step: 'brand' }); render(); };
+    if ($('#sac')) $('#sac').onclick = () => { ONB.set({ ...o, step: 'product' }); location.href = '/api/meta/connect?back=start'; };
   }
   const GICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.7V6.6h-4a12 12 0 0 0 0 10.8z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.3.6 4.5 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"/></svg>';
   const googleBtn = back => me?.google ? `<a class="btn btn-google btn-block" href="/api/auth/google?back=${back}">${GICON}Continuar com Google</a><p class="or"><span>ou com seu e-mail</span></p>` : '';
@@ -324,7 +385,7 @@
     try {
       R.run('brand'); await api('/brand', { method: 'PUT', body: o.brand }); R.done('brand', o.brand?.name || '');
       R.run('photo');
-      let body = { name: o.product.name, price: o.product.price, source: 'site', image_url: o.product.image_url };
+      let body = { name: o.product.name, price: o.product.price, source: o.product.source || 'site', image_url: o.product.image_url };
       if (o.file_data) { const blob = dataUrlToBlob(o.file_data); const up = await fetch('/api/upload', { method: 'POST', headers: { 'content-type': blob.type }, body: blob }).then(r => r.json()); if (!up.ok) throw new Error(up.message || 'Falha no envio da foto.'); body = { ...body, image_url: up.url, image_key: up.key, source: 'upload' }; }
       const { product } = await api('/products', { method: 'POST', body });
       R.done('photo', `${product.name}${product.price ? ' · ' + product.price : ''}`);
@@ -873,13 +934,25 @@
   /* ---------- conta ---------- */
   async function viewAccount(r) {
     const b = me.brand || { colors: {} };
-    main.innerHTML = `<div class="stack"><span class="eyebrow">Configurações</span><h1>Sua marca</h1><p class="lead">${esc(me.user.email)}</p></div>
+    main.innerHTML = `<div class="stack"><span class="eyebrow">Configurações</span><h1>Sua marca</h1><p class="lead">${me.user.email ? esc(me.user.email) : me.user.via_instagram ? 'Conta criada pelo Instagram. Para entrar de novo, use Entrar com Instagram.' : ''}</p></div>
       <nav class="subnav"><a href="#/conta" aria-current="page">Marca e integrações</a><a href="#/plano">Plano e pagamento</a></nav>
       <form class="card" id="f">${brandForm(b, null, true)}<button class="btn btn-primary btn-block" type="submit">Salvar</button></form>
       <div class="card" id="wa"><h3>WhatsApp</h3>${me.user.phone ? `<p class="lead">Conectado: ${esc(me.user.phone)}. Mande a foto de um produto com nome e preço na legenda.</p>` : me.whatsapp ? `<p class="lead">Mande a foto, receba o post. Conecte seu número em dois passos.</p><button class="btn btn-ghost" id="wa-code">Gerar código</button><div id="wa-out"></div>` : `<p class="lead">Mande a foto pelo WhatsApp e receba o post pronto. Disponível no plano Pro, em breve neste ambiente.</p>`}</div>
       <div class="card" id="ig"><h3>Instagram</h3>${igCard('conta')}${me.instagram?.account ? '<button class="btn btn-ghost btn-sm" id="ig-off">Desconectar</button>' : ''}</div>
-      <button class="btn btn-ghost btn-block" id="out">Sair</button>`;
+      ${igBeta() && me.sacolinha?.enabled ? `<div class="card" id="sac-card"><h3>Sacolinha do Instagram <span class="tag">Beta</span></h3><p class="lead">${me.sacolinha.connected ? 'Conectada. Importe os produtos da sua loja do Instagram com foto e preço.' : 'Traga fotos, nomes e preços da loja do Instagram. Você entra com o Facebook que administra a loja.'}</p>
+        <div class="row" style="gap:8px;flex-wrap:wrap"><a class="btn btn-ghost btn-sm" href="/api/meta/connect?back=conta">${me.sacolinha.connected ? 'Importar de novo' : 'Conectar sacolinha'}</a>${me.sacolinha.connected ? '<button class="btn btn-ghost btn-sm" id="sac-off">Desconectar</button>' : ''}</div></div>` : ''}
+      <button class="btn btn-ghost btn-block" id="out">Sair</button>
+      <div class="card danger" id="del-card"><h3>Excluir minha conta</h3><p class="lead">Apaga sua marca, produtos, conteúdos, fotos e as conexões com Instagram e Facebook. Não dá para desfazer.</p>
+        <button class="btn btn-ghost btn-sm" id="del-acc">Excluir minha conta</button>
+        <div id="del-confirm" hidden><p class="lead">Tem certeza? Digite EXCLUIR para confirmar.</p><input class="input" id="del-word" autocapitalize="characters"><button class="btn btn-ghost btn-sm" id="del-go">Excluir para sempre</button></div></div>`;
     bindBrandForm();
+    const sacQ = r?.q?.get('sacolinha');
+    if (sacQ) { if (sacQ === 'ok') { api('/meta/catalog').then(d => d.products.length ? api('/meta/catalog', { method: 'POST', body: { ids: d.products.map(p => p.id) } }) : null).then(x => toast(x ? `${x.added} produtos importados da sacolinha.` : 'Sacolinha conectada, mas sem produtos com foto e preço.', 4500)).catch(e => toast(e.message, 4500)); }
+      else toast({ sem_catalogo: 'Não achei uma loja do Instagram com catálogo nessa conta.', sem_conta: 'Essa conta do Facebook não tem Instagram comercial ligado.', cancelado: 'Conexão cancelada.' }[sacQ] || 'Não consegui abrir a sacolinha. Tente de novo.', 4500);
+      history.replaceState(null, '', location.pathname + '#/conta'); }
+    if ($('#sac-off')) $('#sac-off').onclick = async () => { await api('/meta', { method: 'DELETE' }); await loadMe(); toast('Sacolinha desconectada.'); viewAccount(); };
+    $('#del-acc').onclick = () => { $('#del-confirm').hidden = false; $('#del-acc').hidden = true; $('#del-word').focus(); };
+    $('#del-go').onclick = async () => { if ($('#del-word').value.trim().toUpperCase() !== 'EXCLUIR') { $('#del-word').focus(); return; } await api('/account', { method: 'DELETE' }); me = null; ss.del('iris-onb'); location.href = '/'; };
     if (r?.q?.get('ig')) igToast(r.q.get('ig'));
     if ($('#ig-off')) $('#ig-off').onclick = async () => { await api('/instagram', { method: 'DELETE' }); await loadMe(); toast('Instagram desconectado.'); viewAccount(); };
     $('#f').onsubmit = async e => { e.preventDefault(); await api('/brand', { method: 'PUT', body: readBrandForm(b) }); await loadMe(); toast('Marca salva.'); };
@@ -890,7 +963,8 @@
     if (r?.q?.get('google')) googleToast(r.q.get('google'));
     if (me.user) { location.hash = me.brand ? '#/home' : '#/start'; return; }
     main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><h1>Entrar na Íris</h1><p class="lead">Entre com o Google ou receba um código de 6 dígitos no e-mail.</p></div>
-      <form class="card" id="f">${googleBtn('login')}<div class="field"><label for="email">E-mail</label><input class="input" id="email" type="email" inputmode="email" autocomplete="email"></div><p class="hint" id="h"></p><button class="btn btn-primary btn-block" type="submit"><span class="spin"></span>Receber código</button></form>`;
+      <form class="card" id="f">${igBeta() ? '<a class="btn btn-ig btn-block" id="ig-login" href="/api/instagram/connect?back=start">Entrar com Instagram</a>' : ''}${googleBtn('login')}<div class="field"><label for="email">E-mail</label><input class="input" id="email" type="email" inputmode="email" autocomplete="email"></div><p class="hint" id="h"></p><button class="btn btn-primary btn-block" type="submit"><span class="spin"></span>Receber código</button></form>`;
+    if ($('#ig-login')) $('#ig-login').onclick = () => ONB.set({ step: 'ig' });
     $('#f').onsubmit = async e => { e.preventDefault(); const email = $('#email').value.trim(); const btn = $('#f button[type=submit]'); busy(btn, true); try { const d = await api('/auth/request', { method: 'POST', body: { email } }); codeForm(email, d.dev_code, async () => { await loadMe(); location.hash = me.brand ? '#/home' : '#/start'; render(); }); } catch (err) { $('#h').textContent = err.message; busy(btn, false); } };
   }
 

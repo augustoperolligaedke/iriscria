@@ -1,6 +1,7 @@
 import { json, readJson, clean, id, now, fail } from '../../../lib/util.js';
 import { requireUser } from '../../../lib/auth.js';
 import { getBrand, all, run, one } from '../../../lib/db.js';
+import { copyToR2 } from '../../../lib/generate.js';
 
 export async function onRequestGet({ env, data }) {
   const u = requireUser(data); const brand = await getBrand(env, u.id);
@@ -11,7 +12,11 @@ export async function onRequestPost({ request, env, data }) {
   if (!brand) fail(400, 'no_brand', 'Cadastre a marca primeiro.');
   const p = await readJson(request);
   const name = clean(p.name, 120) || 'Produto';
-  const image_url = clean(p.image_url, 600) || null, image_key = clean(p.image_key, 200) || null;
+  let image_url = clean(p.image_url, 2000) || null, image_key = clean(p.image_key, 200) || null;
+  // links do Instagram e do Facebook expiram: guarda uma cópia no nosso armazenamento
+  if (image_url && !image_key && env.MEDIA && /(cdninstagram|fbcdn)\./i.test(image_url)) {
+    try { image_key = await copyToR2(env, image_url, u.id, 'jpg', 'image/jpeg'); image_url = null; } catch (e) { console.error('copia ig', e); }
+  }
   if (!image_url && !image_key) fail(400, 'no_image', 'Escolha ou envie uma foto do produto.');
   const pid = id('p_');
   await run(env, 'INSERT INTO products (id,brand_id,name,price,description,image_url,image_key,source,created_at) VALUES (?,?,?,?,?,?,?,?,?)',
