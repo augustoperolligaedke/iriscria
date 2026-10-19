@@ -419,7 +419,7 @@
     const maxW = Math.max(1, ...weeks.map(w => w.n));
     main.innerHTML = `
       <div class="dash-head"><div class="who">${b.logo_url ? `<img src="${imgSrc(b.logo_url)}" alt="" onerror="this.remove()">` : ''}<div><span class="eyebrow">Visão geral</span><h1>${esc(b.name || 'Sua loja')}</h1></div></div>
-        <a class="btn btn-primary" href="${nextHref}">Criar o próximo post</a></div>
+        <a class="btn btn-primary hide-m" href="${nextHref}">Criar o próximo post</a></div>
       ${me.billing?.renew_soon ? `<div class="card tight row between"><p style="margin:0">Seu plano pago com Pix vence em ${Math.max(0, Math.ceil((new Date(me.billing.until) - Date.now()) / 86400e3))} dia(s).</p><a class="btn btn-primary btn-sm" href="#/plano">Renovar com Pix</a></div>` : ''}
       ${chatCard(next, prod, soon)}
       <div class="kpis">
@@ -430,23 +430,23 @@
       </div>
       <div class="dash-grid">
         <div class="stack">
-          <div class="card"><div class="row between"><h3>Funil da semana<small>Postagens desde segunda, por etapa. Reels atraem, carrossel convence, feed vende.</small></h3><button class="btn btn-ghost btn-sm" type="button" id="ins-r" hidden>Atualizar</button></div>
+          <div class="card c-funil"><div class="row between"><h3>Funil da semana<small>Postagens desde segunda, por etapa. Reels atraem, carrossel convence, feed vende.</small></h3><button class="btn btn-ghost btn-sm" type="button" id="ins-r" hidden>Atualizar</button></div>
             <div class="fn" id="fn">${['reel', 'carousel', 'feed'].map(f => fnRow(f, { posts: done(f) }, goal[f], null)).join('')}</div>
             <div id="fn-foot" class="fn-foot"></div>
             ${next && prod ? `<div class="suggest"><span class="eyebrow">Próximo post sugerido</span><p><b>${FORMAT[next]} de ${esc(prod.name)}</b> ${why[next]}${soon && next !== 'reel' ? `, já puxando o gancho de ${esc(soon.n)}` : ''}.</p><a class="btn btn-primary btn-sm" href="${nextHref}">Criar agora</a></div>`
               : !prod ? `<div class="suggest"><p>Envie a foto de um produto para a Íris sugerir os próximos posts.</p><a class="btn btn-primary btn-sm" href="#/create">Enviar foto</a></div>`
               : `<div class="suggest"><p>Você usou os créditos do mês. Mude de plano para manter o ritmo.</p><a class="btn btn-primary btn-sm" href="#/plano">Ver planos</a></div>`}
           </div>
-          <div class="card"><div class="row between"><h3>Prontos para postar<small>Revise, aprove e publique.</small></h3><a class="micro" href="#/conteudos">Ver todos</a></div>
-            ${ready.length ? `<div class="posts">${ready.slice(0, 8).map(postCard).join('')}</div>` : `<p class="lead">${generating.length ? 'Seu conteúdo está sendo gerado. Volte em alguns minutos.' : 'Nada pronto ainda. Crie o próximo post sugerido acima.'}</p>`}
+          <div class="card c-prontos"><div class="row between"><h3>Prontos para postar<small>Revise, aprove e publique.</small></h3><a class="micro" href="#/conteudos">Ver todos</a></div>
+            ${ready.length ? `<div class="posts ready">${ready.slice(0, 8).map(postCard).join('')}</div>` : `<p class="lead">${generating.length ? 'Seu conteúdo está sendo gerado. Volte em alguns minutos.' : 'Nada pronto ainda. Crie o próximo post sugerido acima.'}</p>`}
           </div>
-          <div class="card"><h3>Ritmo<small>Conteúdos criados por semana.</small></h3>
+          <div class="card c-ritmo"><h3>Ritmo<small>Conteúdos criados por semana.</small></h3>
             <div class="weeks">${weeks.map(w => `<div class="${w.now ? 'now' : ''}"><i style="height:${Math.max(4, Math.round(w.n / maxW * 52))}px" title="${w.n} conteúdos"></i><span>${w.label}</span></div>`).join('')}</div></div>
         </div>
         <div class="stack">
-          <div class="card"><h3>Datas que vendem<small>O que vem aí no varejo.</small></h3>
+          <div class="card c-datas"><h3>Datas que vendem<small>O que vem aí no varejo.</small></h3>
             ${dates.length ? `<div class="dates">${dates.slice(0, 4).map(d => `<div class="d"><div class="when">${d.days === 0 ? 'hoje' : d.days}<small>${d.days === 0 ? '' : d.days === 1 ? 'dia' : 'dias'}</small></div><div><b>${esc(d.n)}</b> · ${d.d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}<p>${esc(d.t)}</p></div></div>`).join('')}</div>` : '<p class="lead">Nenhuma data forte nas próximas semanas. Bom momento para novidades.</p>'}</div>
-          <div class="card"><div class="row between"><h3>Sua loja</h3><a class="micro" href="#/conta">Editar</a></div>
+          <div class="card c-loja"><div class="row between"><h3>Sua loja</h3><a class="micro" href="#/conta">Editar</a></div>
             <dl class="ctx">
               <div><dt>Cores</dt><dd class="sw">${['primary', 'secondary', 'accent'].map(k => `<i style="background:${esc(b.colors?.[k] || '#ccc')}"></i>`).join('')}</dd></div>
               ${b.icp ? `<div><dt>Quem compra</dt><dd>${esc(b.icp)}</dd></div>` : ''}
@@ -516,8 +516,8 @@
         <div id="chat-ig" class="chat-ig" hidden></div>
         <div class="row between">
           <div class="row">
-            <label class="btn btn-ghost btn-sm"><input type="file" id="chat-file" accept="image/*" hidden><svg viewBox="0 0 24 24" class="i"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg>Foto do celular</label>
-            <button class="btn btn-ghost btn-sm" type="button" id="chat-igb"><svg viewBox="0 0 24 24" class="i"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>${ig.account && !ig.account.expired ? 'Do meu Instagram' : 'Conectar Instagram'}</button>
+            <label class="btn btn-ghost btn-sm"><input type="file" id="chat-file" accept="image/*" hidden><svg viewBox="0 0 24 24" class="i"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg><span>Foto<span class="hide-m"> do celular</span></span></label>
+            <button class="btn btn-ghost btn-sm" type="button" id="chat-igb"><svg viewBox="0 0 24 24" class="i"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg><span>${ig.account && !ig.account.expired ? '<span class="hide-m">Do meu </span>Instagram' : '<span class="hide-m">Conectar </span>Instagram'}</span></button>
           </div>
           <button class="btn btn-primary btn-sm" type="submit" id="chat-go"><span class="spin"></span>Criar</button>
         </div>
@@ -619,7 +619,7 @@
       box.innerHTML = `<div class="card"><div class="row between"><h2>${esc(FORMAT[c.format])}</h2>${statusTag(c)}</div><p class="micro">${esc(c.spec.product?.name || '')}${c.spec.product?.price ? ' · ' + esc(c.spec.product.price) : ''}</p>
         <div class="preview" id="pv"><p class="micro">Montando a arte…</p></div>
         <div class="stack" id="edit"></div>
-        <div class="row" id="actions"></div></div>`;
+        <div class="row acts" id="actions"></div></div>`;
       const pv = $('#pv', box), ed = $('#edit', box), ac = $('#actions', box);
       try {
         if (c.format === 'reel') await drawReel(pv, c); else await drawSlides(pv, c);

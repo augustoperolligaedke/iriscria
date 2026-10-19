@@ -257,3 +257,52 @@ textarea.input{min-height:96px;resize:vertical}
 /* como você vende */
 .sell{border:1px solid var(--line);border-radius:16px;padding:14px;margin:0;display:grid;gap:14px}
 .sell legend{font-weight:700;padding:0 6px}
+
+/* ---------- celular: painel e telas internas ---------- */
+@media (max-width:719px){
+  .hide-m{display:none!important}
+  body.has-shell .main{gap:16px;padding:calc(12px + env(safe-area-inset-top,0px)) 14px calc(84px + env(safe-area-inset-bottom,0px))}
+  body.has-shell h1{font-size:26px;line-height:32px}
+  body.has-shell .card{padding:16px;gap:12px;border-radius:18px}
+  .card h3{font-size:16px;line-height:22px}
+  .dash-head{gap:10px}
+  .dash-head .who{gap:10px}
+  .dash-head .who img{width:40px;height:40px;border-radius:10px}
+  .dash-head .btn{min-height:40px;padding:8px 16px;font-size:14px}
+  /* chat */
+  .chat-box{flex-direction:column;gap:4px;padding:10px 12px}
+  .chat-box textarea{min-height:44px;width:100%}
+  .chat form>.row.between{flex-wrap:nowrap;gap:8px}
+  .chat form>.row.between>.row{flex-wrap:nowrap;gap:6px}
+  .chat .btn-sm{min-height:40px;padding:8px 12px;font-size:14px}
+  .chat .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+  .chat .chips .chip{white-space:nowrap;flex:none}
+  .msg .posts{grid-template-columns:repeat(3,minmax(0,1fr))}
+  /* indicadores compactos */
+  .kpis{gap:8px}
+  .kpi{padding:12px;gap:2px;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;border-radius:14px}
+  .kpi .ic{width:28px;height:28px;grid-row:span 1}
+  .kpi span{font-size:12px;line-height:16px}
+  .kpi b{grid-column:1/-1;font-size:24px;line-height:28px;margin-top:4px}
+  .kpi small{grid-column:1/-1;font-size:11px;line-height:14px}
+  /* funil */
+  .fn-row{padding:8px 0;row-gap:6px}
+  .fn-m b{font-size:18px;line-height:22px}
+  .fn-total{font-size:13px;gap:4px 14px}
+  /* prontos para postar: até 4 */
+  .posts.ready{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .posts.ready .post:nth-child(n+5){display:none}
+  /* detalhe do conteúdo: ações fixas acima da barra inferior */
+  .acts{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:5;margin:0 -16px -16px;padding:12px 16px;background:var(--surface);border-top:1px solid var(--line);border-radius:0 0 18px 18px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .acts .btn{min-height:44px;padding:10px 12px;font-size:14px}
+  .acts>.btn-primary:first-child,.acts>a.btn-primary:first-child{grid-column:1/-1}
+  .acts #del{grid-column:1/-1;justify-self:center;border:0;background:none;color:var(--ink-2);min-height:32px;font-size:13px;text-decoration:underline}
+  /* planos e configurações */
+  .plans{gap:10px}
+  .plan{padding:16px}
+  .sell{padding:12px}
+}
+@media (max-width:959px){
+  .dash-grid>.stack{display:contents}
+  .c-funil{order:1}.c-prontos{order:2}.c-datas{order:3}.c-loja{order:4}.c-ritmo{order:5}
+}
