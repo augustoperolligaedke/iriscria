@@ -99,19 +99,58 @@
       ONB.set({ ...o, store: '', brand: { name, colors: { primary: '#1F140D', secondary: '#FFFFFF', accent: '#FFD83A' }, font: 'Manrope', tone: '', icp: '', strategy: { close_channel: 'whatsapp', emoji: true } }, products: [], meta: { colors_from_photo: true, no_site: true }, step: 'brand' }); render(); };
   }
 
+  /* ---------- "Íris trabalhando": lista de etapas com resultado real e transformação da foto ---------- */
+  function runPanel(host, { title, tasks, photo = null, compact = false }) {
+    host.innerHTML = `<div class="run ${compact ? 'compact' : ''}">
+      <div class="run-head"><img class="bot working" src="/assets/iris-mark.png" alt=""><div><b>${esc(title)}</b><span class="run-count">0/${tasks.length} etapas</span></div></div>
+      ${photo ? `<div class="morph"><img class="before" src="${photo}" alt=""><i class="scan" aria-hidden="true"></i><div class="after"></div></div>` : ''}
+      <ol class="tasks" aria-live="polite">${tasks.map(t => `<li data-t="${t.id}" data-state="pending"><i aria-hidden="true"></i><div><span>${esc(t.label)}</span><small></small></div></li>`).join('')}</ol>
+      <p class="micro run-note"></p></div>`;
+    const q = sel => host.querySelector(sel), row = id => host.querySelector(`[data-t="${id}"]`);
+    const count = () => { const n = host.querySelectorAll('[data-state="done"]').length; q('.run-count').textContent = `${n}/${tasks.length} etapas`; };
+    return {
+      run(id, note) { const r = row(id); if (r && r.dataset.state === 'pending') { r.dataset.state = 'running'; if (note) r.querySelector('small').textContent = note; } },
+      done(id, result) { const r = row(id); if (!r) return; r.dataset.state = 'done'; r.querySelector('small').textContent = result || ''; count(); },
+      fail(id, msg) { const r = row(id); if (!r) return; r.dataset.state = 'error'; r.querySelector('small').textContent = msg || ''; q('.bot').classList.remove('working'); },
+      skip(id, msg) { const r = row(id); if (!r) return; r.dataset.state = 'skip'; r.querySelector('small').textContent = msg || ''; count(); },
+      note(t) { q('.run-note').textContent = t || ''; },
+      reveal(html) { const a = q('.after'); if (!a) return; a.innerHTML = html; requestAnimationFrame(() => q('.morph').classList.add('ready')); },
+      finish() { const b = q('.bot'); b.classList.remove('working'); b.classList.add('done'); },
+    };
+  }
+  const pause = ms => new Promise(r => setTimeout(r, ms));
+
   async function stepAnalyze(o) {
-    main.innerHTML = `<img class="mark" src="/assets/iris-mark.png" alt="">${stepsBar(1)}
-      <div class="stack center"><h1>Lendo ${esc(o.store)}</h1><p class="lead" id="msg">Procurando cores, fonte, fotos e o jeito de falar da sua loja.</p><div class="progress"><i id="bar"></i></div></div>`;
-    const msgs = ['Lendo as páginas da loja', 'Separando as cores da marca', 'Descobrindo a fonte', 'Encontrando fotos de produto', 'Entendendo o tom de voz e quem compra'];
-    let i = 0; const tm = setInterval(() => { i = Math.min(i + 1, msgs.length - 1); $('#msg').textContent = msgs[i] + '…'; $('#bar').style.width = (15 + i * 18) + '%'; }, 1400);
+    main.innerHTML = `${stepsBar(1)}<div id="run"></div>`;
+    const host = String(o.store || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const R = runPanel($('#run'), { title: `Lendo ${host}`, tasks: [
+      { id: 'open', label: 'Abrir o site da loja' }, { id: 'logo', label: 'Ler o logo e as cores' }, { id: 'font', label: 'Ler a fonte e o jeito de falar' },
+      { id: 'cat', label: 'Encontrar o catálogo e os preços' }, { id: 'sell', label: 'Entender como você vende' }, { id: 'brand', label: 'Montar sua marca' }] });
+    // o servidor faz tudo em paralelo: as etapas entram em andamento e só ficam prontas com o resultado
+    const order = ['open', 'logo', 'font', 'cat', 'sell']; let k = 0; R.run('open');
+    const tm = setInterval(() => { k = Math.min(k + 1, order.length - 1); R.run(order[k]); }, 900);
     try {
       const d = await api('/brand/analyze', { method: 'POST', body: { store: o.store, instagram: o.ig_handle || undefined } });
-      const pal = await logoPalette(d.meta?.logo_candidates || [], d.meta?.site_bg, d.meta?.colors_found || []).catch(() => null);
-      if (pal) { d.brand.colors = pal.colors; d.brand.logo_url = pal.logo; d.meta.colors_from = pal.from; } else d.meta.colors_from_photo = true;
-      clearInterval(tm);
-      ONB.set({ ...o, brand: d.brand, products: d.products, meta: d.meta, step: 'brand' }); render();
-    } catch (e) { clearInterval(tm); ONB.set({ ...o, brand: { name: '', colors: { primary: '#1F140D', secondary: '#FFF9EF', accent: '#FFD83A' }, font: 'Manrope', tone: '', icp: '' }, products: [], meta: { site_error: e.message }, step: 'brand' }); render(); }
+      clearInterval(tm); order.forEach(id => R.run(id));
+      const m = d.meta || {}, b = d.brand || {}, st = b.strategy || {};
+      if (m.site_error && m.site_error !== 'blocked') { R.fail('open', 'Não consegui abrir o site. Vamos com as suas fotos.'); }
+      else R.done('open', m.site_error === 'blocked' ? 'Site protegido: usei o ícone público da marca' : (b.site_url || host).replace(/^https?:\/\//, ''));
+      await pause(250);
+      const pal = await logoPalette(m.logo_candidates || [], m.site_bg, m.colors_found || []).catch(() => null);
+      if (pal) { b.colors = pal.colors; b.logo_url = pal.logo; m.colors_from = pal.from; R.done('logo', `Cores tiradas do ${pal.from}`); R.reveal?.(''); }
+      else { m.colors_from_photo = true; R.skip('logo', 'Sem logo legível: as cores vão sair da foto do produto'); }
+      const sw = $('#run [data-t="logo"] small'); if (pal && sw) sw.insertAdjacentHTML('beforeend', ` <span class="sw-inline">${['primary', 'secondary', 'accent'].map(k2 => `<i style="background:${esc(pal.colors[k2])}"></i>`).join('')}</span>`);
+      await pause(250); R.done('font', `Fonte ${b.font || 'Manrope'}${b.tone ? ' · ' + b.tone.split('.')[0].toLowerCase() : ''}`);
+      await pause(250); const np = (d.products || []).filter(p => p.price).length;
+      if (m.catalog) R.done('cat', `${(d.products || []).length} produtos com preço lidos da loja`); else if ((d.products || []).length) R.done('cat', `${d.products.length} fotos encontradas${np ? '' : ', sem preço'}`); else R.skip('cat', 'Sem catálogo: você manda a foto no próximo passo');
+      await pause(250); const TIER = { popular: 'Popular', intermediario: 'Intermediário', premium: 'Premium' }, CH = { whatsapp: 'fecha no WhatsApp', site: 'fecha no site', direct: 'fecha no direct', loja: 'fecha na loja' };
+      R.done('sell', [TIER[st.price_tier], CH[st.close_channel], st.conditions].filter(Boolean).join(' · ') || 'Você confirma na próxima tela');
+      await pause(250); R.done('brand', b.name || 'Pronto'); R.finish(); R.note('Confira na próxima tela. Você pode ajustar tudo.');
+      await pause(1100);
+      ONB.set({ ...o, brand: b, products: d.products, meta: m, step: 'brand' }); render();
+    } catch (e) { clearInterval(tm); R.fail('open', e.message); await pause(900); ONB.set({ ...o, brand: { name: '', colors: { primary: '#1F140D', secondary: '#FFF9EF', accent: '#FFD83A' }, font: 'Manrope', tone: '', icp: '' }, products: [], meta: { site_error: e.message }, step: 'brand' }); render(); }
   }
+
 
   /* ---------- cores da marca a partir do logo e do fundo do site ---------- */
   const hex = (r, g, b) => '#' + [r, g, b].map(n => Math.round(n).toString(16).padStart(2, '0')).join('');
@@ -276,24 +315,39 @@
     $('#again').onclick = async () => { try { const d = await api('/auth/request', { method: 'POST', body: { email } }); toast('Novo código enviado.'); if (d.dev_code) $('#code').value = d.dev_code; } catch (err) { $('#h').textContent = err.message; } };
   }
   async function stepGenerate(o) {
-    main.innerHTML = `<img class="mark" src="/assets/iris-mark.png" alt=""><div class="stack center"><h1>Criando seu reels e carrossel</h1><p class="lead" id="msg">Salvando a marca…</p><div class="progress"><i id="bar" style="width:10%"></i></div></div>`;
-    const set = (m, w) => { $('#msg').textContent = m; $('#bar').style.width = w + '%'; };
+    main.innerHTML = `<div id="run"></div>`;
+    const photo = o.file_data || (o.product?.image_url ? '/api/img?u=' + encodeURIComponent(o.product.image_url) : null);
+    const R = runPanel($('#run'), { title: 'Transformando sua foto em post', photo, tasks: [
+      { id: 'brand', label: 'Guardar sua marca' }, { id: 'photo', label: 'Preparar a foto da peça' }, { id: 'copy', label: 'Escrever o hook, os slides e a legenda' },
+      { id: 'art', label: 'Aplicar as cores e a fonte da marca' }, { id: 'reel', label: 'Gerar o vídeo do reels' }] });
     try {
-      await api('/brand', { method: 'PUT', body: o.brand });
-      set('Guardando o produto…', 30);
+      R.run('brand'); await api('/brand', { method: 'PUT', body: o.brand }); R.done('brand', o.brand?.name || '');
+      R.run('photo');
       let body = { name: o.product.name, price: o.product.price, source: 'site', image_url: o.product.image_url };
       if (o.file_data) { const blob = dataUrlToBlob(o.file_data); const up = await fetch('/api/upload', { method: 'POST', headers: { 'content-type': blob.type }, body: blob }).then(r => r.json()); if (!up.ok) throw new Error(up.message || 'Falha no envio da foto.'); body = { ...body, image_url: up.url, image_key: up.key, source: 'upload' }; }
       const { product } = await api('/products', { method: 'POST', body });
-      set('Escrevendo legenda, roteiro e slides…', 55);
+      R.done('photo', `${product.name}${product.price ? ' · ' + product.price : ''}`);
+      R.run('copy'); R.run('reel', 'Na fila');
       const { contents } = await api('/contents', { method: 'POST', body: { product_id: product.id, formats: ['carousel', 'reel'], offer: o.offer || '', gift: true } });
-      set('Pronto. Abrindo…', 100);
+      const car = contents.find(c => c.format === 'carousel'), reel = contents.find(c => c.format === 'reel');
+      R.done('copy', car ? `Hook: “${car.spec.copy?.slides?.[0]?.title || ''}” · ${car.spec.copy?.slides?.length || 0} slides` : 'Pronto');
+      R.run('art');
+      if (car) { try { R.reveal(await svgFor(car, 'carousel', 0)); } catch { } }
+      R.done('art', 'Paleta, fonte e hook aplicados');
+      if (reel) { if (reel.spec?.mock) R.done('reel', 'Prévia animada pronta (vídeo real quando a chave do Higgsfield for ligada)'); else if (reel.status === 'failed') R.fail('reel', 'O vídeo falhou; a capa e a legenda estão prontas'); else R.done('reel', 'Enviado para o gerador. Fica pronto em 1 a 3 minutos'); }
+      R.finish(); R.note('Pronto. Essa é a capa do seu carrossel.');
+      ONB.set({ step: 'result', ids: contents.map(c => c.id) }); ss.del('iris-loja');
       await loadMe();
-      ONB.set({ step: 'result', ids: contents.map(c => c.id) }); ss.del('iris-loja'); render();
+      $('#run').insertAdjacentHTML('beforeend', '<button class="btn btn-primary btn-block" id="see" style="margin-top:4px">Ver meu conteúdo</button>');
+      let gone = false; const go = () => { if (gone) return; gone = true; render(); };
+      $('#see').onclick = go; setTimeout(go, 6000);
     } catch (e) {
       if (e.code === 'no_credits') { ONB.set({ ...o, step: 'result', ids: [] }); toast(e.message); location.hash = '#/plano'; return; }
-      main.innerHTML = `<div class="card"><h2>Não deu certo.</h2><p class="lead">${esc(e.message)}</p><button class="btn btn-primary" id="r">Tentar de novo</button></div>`; $('#r').onclick = render;
+      ['brand', 'photo', 'copy', 'art', 'reel'].forEach(id => { const r = $(`#run [data-t="${id}"]`); if (r?.dataset.state === 'running') R.fail(id, e.message); });
+      $('#run').insertAdjacentHTML('beforeend', '<button class="btn btn-primary btn-block" id="r" style="margin-top:12px">Tentar de novo</button>'); $('#r').onclick = render;
     }
   }
+
   async function stepResult(o) {
     const ids = o.ids || [];
     if (!ids.length) { ONB.set({}); location.hash = '#/home'; return; }
@@ -553,12 +607,16 @@
       const text = $('#chat-t').value.trim(); if (text.length < 3 && !CHAT.att) { $('#chat-t').focus(); return; }
       const btn = $('#chat-go'); busy(btn, true);
       CHAT.log.push({ me: true, text: text || 'um post com esta foto' }); log.insertAdjacentHTML('beforeend', chatMsg(CHAT.log.at(-1)));
+      log.insertAdjacentHTML('beforeend', '<div class="msg iris" id="chat-run"></div>');
+      const R = runPanel($('#chat-run'), { title: 'Criando', compact: true, tasks: [{ id: 'intent', label: 'Entender o pedido' }, { id: 'photo', label: 'Preparar a foto' }, { id: 'make', label: 'Escrever e montar a arte' }] });
+      R.run('intent'); setTimeout(() => { R.done('intent'); R.run('photo'); }, 700); setTimeout(() => { R.done('photo'); R.run('make'); }, 1500);
       try {
         const r = await api('/chat', { method: 'POST', body: { text, default_format: next, ...(CHAT.att?.upload ? { upload: CHAT.att.upload } : {}), ...(CHAT.att?.ig_media_id ? { ig_media_id: CHAT.att.ig_media_id } : {}) } });
+        $('#chat-run')?.remove();
         CHAT.log.push({ text: r.reply, ids: r.contents.map(c => ({ id: c.id, format: c.format })) });
         log.insertAdjacentHTML('beforeend', chatMsg(CHAT.log.at(-1))); hydrateArts(r.contents);
         $('#chat-t').value = ''; setAtt(null); await loadMe(); sideInfo();
-      } catch (err) { CHAT.log.push({ text: err.message }); log.insertAdjacentHTML('beforeend', chatMsg(CHAT.log.at(-1))); }
+      } catch (err) { $('#chat-run')?.remove(); CHAT.log.push({ text: err.message }); log.insertAdjacentHTML('beforeend', chatMsg(CHAT.log.at(-1))); }
       finally { saveChat(); busy(btn, false); log.lastElementChild?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } };
   }
   /* ---------- conteúdos: fluxo de postagens ---------- */
@@ -602,8 +660,18 @@
       busy(btn, true);
       try {
         if (file) { const name = $('#p-name').value.trim(); if (!name) throw new Error('Dê um nome ao produto.'); const up = await fetch('/api/upload', { method: 'POST', headers: { 'content-type': file.type }, body: file }).then(r => r.json()); if (!up.ok) throw new Error(up.message || 'Falha no envio.'); const { product } = await api('/products', { method: 'POST', body: { name, price: $('#p-price').value.trim(), image_url: up.url, image_key: up.key, source: 'upload' } }); pid = product.id; }
+        const prodImg = file ? URL.createObjectURL(file) : (() => { const p = (me.products || []).find(x => x.id === pid); return p ? imgSrc(p.image_url) : null; })();
+        const NAMES = { reel: 'reels', carousel: 'carrossel', feed: 'post no feed' };
+        main.innerHTML = '<div id="run"></div>';
+        const R = runPanel($('#run'), { title: 'Transformando sua foto em post', photo: prodImg, tasks: [{ id: 'copy', label: `Escrever ${formats.map(f => NAMES[f]).join(', ')}` }, { id: 'art', label: 'Aplicar as cores e a fonte da marca' }, ...(formats.includes('reel') ? [{ id: 'reel', label: 'Gerar o vídeo do reels' }] : [])] });
+        R.run('copy'); if (formats.includes('reel')) R.run('reel', 'Na fila');
         const { contents } = await api('/contents', { method: 'POST', body: { product_id: pid, formats, offer: $('#offer').value.trim() } });
-        await loadMe(); location.hash = '#/content/' + contents[0].id; if (contents.length > 1) toast(`${contents.length} conteúdos criados.`);
+        const first = contents.find(c => c.format !== 'reel') || contents[0];
+        const cp = first.spec.copy || {}; R.done('copy', `Hook: “${cp.hook || cp.slides?.[0]?.title || ''}”`);
+        R.run('art'); try { R.reveal(await svgFor(first, first.format === 'reel' ? 'reel' : first.format, 0)); } catch { } R.done('art', 'Paleta, fonte e hook aplicados');
+        const rl = contents.find(c => c.format === 'reel'); if (rl) R.done('reel', rl.spec?.mock ? 'Prévia animada pronta' : 'Enviado ao gerador · 1 a 3 minutos');
+        R.finish(); await loadMe(); await pause(1400);
+        location.hash = '#/content/' + first.id; if (contents.length > 1) toast(`${contents.length} conteúdos criados. Veja todos em Conteúdos.`);
       } catch (err) { $('#h').textContent = err.message; if (err.code === 'no_credits') setTimeout(() => location.hash = '#/plano', 1200); } finally { busy(btn, false); } };
   }
 
@@ -616,7 +684,7 @@
     let { content: c } = await api('/contents/' + id);
     const draw = async () => {
       const copy = c.spec.copy || {};
-      box.innerHTML = `<div class="card"><div class="row between"><h2>${esc(FORMAT[c.format])}</h2>${statusTag(c)}</div><p class="micro">${esc(c.spec.product?.name || '')}${c.spec.product?.price ? ' · ' + esc(c.spec.product.price) : ''}</p>
+      box.innerHTML = `<div class="card ${full ? 'detail' : ''}"><div class="row between"><h2>${esc(FORMAT[c.format])}</h2>${statusTag(c)}</div><p class="micro">${esc(c.spec.product?.name || '')}${c.spec.product?.price ? ' · ' + esc(c.spec.product.price) : ''}</p>
         <div class="preview" id="pv"><p class="micro">Montando a arte…</p></div>
         <div class="stack" id="edit"></div>
         <div class="row acts" id="actions"></div></div>`;
@@ -709,42 +777,52 @@
     }
     return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="'${font}', Manrope, sans-serif"><style>${face}</style>${body}</svg>`;
   }
+  /* ---------- mock do Instagram: o post como ele aparece no app ---------- */
+  const IGI = {
+    heart: '<path d="M12 20s-7-4.4-9.2-8.6C1.1 8.1 3 4.5 6.6 4.5c2 0 3.3 1.1 4.1 2.3h.6c.8-1.2 2.1-2.3 4.1-2.3 3.6 0 5.5 3.6 3.8 6.9C19 15.6 12 20 12 20z"/>',
+    comment: '<path d="M20.5 12a8.5 8.5 0 0 1-12.6 7.4L3.5 20.5l1.1-4.2A8.5 8.5 0 1 1 20.5 12z"/>',
+    send: '<path d="M21 3 10 14M21 3l-6.8 18-3.2-7-7-3.2z"/>',
+    save: '<path d="M6 3.5h12v17l-6-4.6-6 4.6z"/>',
+    more: '<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>',
+    music: '<path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+  };
+  const igIcon = (k, fill) => `<svg viewBox="0 0 24 24" aria-hidden="true" class="${fill ? 'f' : ''}">${IGI[k]}</svg>`;
+  function igWho(c) {
+    const b = c.spec.brand || {}, handle = (b.instagram || (b.name || 'sualoja').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9._]/g, '')).replace(/^@/, '');
+    const logo = me?.brand?.logo_url;
+    const av = logo ? `<img src="${imgSrc(logo)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('i'),{textContent:'${esc((b.name || 'L')[0])}'}))">` : `<i style="background:${esc(b.colors?.primary || '#1F140D')}">${esc((b.name || 'L')[0].toUpperCase())}</i>`;
+    return { handle, av };
+  }
+  const igCaption = (c, handle) => { const cp = c.spec.copy || {}; return `<p class="igm-cap"><b>${esc(handle)}</b> ${esc(cp.caption || '')}${cp.hashtags?.length ? ` <span class="tags">${esc(cp.hashtags.join(' '))}</span>` : ''}</p>`; };
   async function drawSlides(pv, c) {
     const n = c.format === 'carousel' ? (c.spec.copy?.slides || []).length || 1 : 1;
     const svgs = []; for (let i = 0; i < n; i++) svgs.push(await svgFor(c, c.format === 'carousel' ? 'carousel' : 'feed', i));
-    pv.innerHTML = `<div class="${n > 1 ? 'slides' : ''}">${svgs.map(s => `<div class="frame">${s}</div>`).join('')}</div><p class="micro">${esc(c.spec.copy?.caption || '')}${c.spec.copy?.hashtags ? '<br>' + esc(c.spec.copy.hashtags.join(' ')) : ''}</p>`;
+    const { handle, av } = igWho(c);
+    pv.innerHTML = `<article class="igm" aria-label="Prévia no Instagram">
+      <header class="igm-top"><span class="igm-av">${av}</span><b>${esc(handle)}</b><span class="igm-more">${igIcon('more', true)}</span></header>
+      <div class="igm-media"><div class="igm-track">${svgs.map(x => `<div class="igm-slide">${x}</div>`).join('')}</div>${n > 1 ? `<span class="igm-count">1/${n}</span>` : ''}</div>
+      <div class="igm-acts"><span>${igIcon('heart')}${igIcon('comment')}${igIcon('send')}</span>${n > 1 ? `<span class="igm-dots">${svgs.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</span>` : '<span></span>'}<span>${igIcon('save')}</span></div>
+      ${igCaption(c, handle)}<span class="igm-time">Prévia · ainda não publicado</span></article>`;
+    if (n > 1) { const tr = pv.querySelector('.igm-track'), cnt = pv.querySelector('.igm-count'), dots = [...pv.querySelectorAll('.igm-dots i')];
+      tr.addEventListener('scroll', () => { const i = Math.round(tr.scrollLeft / tr.clientWidth); cnt.textContent = `${i + 1}/${n}`; dots.forEach((d, j) => d.classList.toggle('on', j === i)); }, { passive: true }); }
     pv.dataset.svgs = JSON.stringify(svgs);
   }
   async function drawReel(pv, c) {
     const cover = await svgFor(c, 'reel', 0);
     const vid = c.output_key ? '/media/' + c.output_key : c.output_url;
-    const status = c.status;
-    let media;
-    if (vid && (status === 'completed' || status === 'approved')) media = `<div class="frame"><video src="${vid}" controls playsinline loop muted autoplay poster=""></video></div>`;
-    else if (status === 'failed') media = `<div class="frame"><p class="hint" style="padding:16px">A geração do vídeo falhou: ${esc(c.error || 'erro no provedor')}. A capa e a legenda continuam valendo.</p></div>`;
-    else if (c.spec.mock) media = `<div class="frame kb"><img src="${await imgData(c.spec.product.image_url).catch(() => '/assets/iris-mark.png')}" alt=""></div><p class="fine">Prévia animada. O vídeo real é gerado quando a chave do Higgsfield estiver configurada.</p>`;
-    else media = `<div class="frame kb"><img src="${await imgData(c.spec.product.image_url).catch(() => '/assets/iris-mark.png')}" alt=""><span class="t">Gerando o vídeo…</span></div><p class="fine">Costuma levar de 1 a 3 minutos. A página atualiza sozinha.</p>`;
-    pv.innerHTML = `${media}<div class="row"><div class="frame" style="width:40%">${cover}</div><div class="stack" style="flex:1;min-width:0"><p class="micro"><b>Gancho:</b> ${esc(c.spec.copy?.hook || '')}</p><p class="micro">${esc(c.spec.copy?.caption || '')}</p></div></div>`;
+    const status = c.status, { handle, av } = igWho(c), cp = c.spec.copy || {};
+    let media, note = '';
+    if (vid && ['completed', 'approved', 'published'].includes(status)) media = `<video src="${vid}" playsinline loop muted autoplay></video>`;
+    else { media = `<div class="kb"><img src="${await imgData(c.spec.product.image_url).catch(() => '/assets/iris-mark.png')}" alt=""></div>`;
+      note = status === 'failed' ? `<p class="hint">A geração do vídeo falhou: ${esc(c.error || 'erro no provedor')}. A capa e a legenda continuam valendo.</p>` : c.spec.mock ? '<p class="fine">Prévia animada. O vídeo real é gerado quando a chave do Higgsfield estiver configurada.</p>' : '<p class="fine">Gerando o vídeo. Costuma levar de 1 a 3 minutos e a página atualiza sozinha.</p>'; }
+    pv.innerHTML = `<article class="igm reel" aria-label="Prévia do reels no Instagram">
+      <div class="igm-reel">${media}<span class="igm-label">Reels</span>
+        <div class="igm-side">${igIcon('heart')}${igIcon('comment')}${igIcon('send')}${igIcon('more', true)}</div>
+        <div class="igm-foot"><div class="igm-who"><span class="igm-av">${av}</span><b>${esc(handle)}</b><span class="igm-follow">Seguir</span></div>
+          <p>${esc(cp.hook || '')}</p><span class="igm-audio">${igIcon('music')} ${esc(handle)} · Áudio original</span></div></div></article>
+      ${note}
+      <div class="igm-coverrow"><div class="frame">${cover}</div><div><b>Capa no perfil</b><p class="micro">É assim que o reels aparece na grade da loja.</p><p class="micro"><b>Legenda:</b> ${esc(cp.caption || '')}</p></div></div>`;
     pv.dataset.svgs = JSON.stringify([cover]);
-  }
-  async function uploadJpeg(svg) {
-    const blob = dataUrlToBlob(await svgToPng(svg, 'image/jpeg'));
-    const up = await fetch('/api/upload', { method: 'POST', headers: { 'content-type': 'image/jpeg' }, body: blob }).then(r => r.json());
-    if (!up.ok) throw new Error(up.message || 'Falha ao preparar a imagem.');
-    return up.url;
-  }
-  async function publishToIg(box, c) {
-    const svgs = JSON.parse($('#pv', box).dataset.svgs || '[]');
-    toast('Preparando as imagens…');
-    const urls = []; for (const s of svgs) urls.push(await uploadJpeg(s));
-    const body = c.format === 'reel' ? { cover_url: urls[0] } : { image_urls: urls };
-    toast('Enviando para o Instagram…', 8000);
-    for (let i = 0; i < 12; i++) {
-      const r = await api('/contents/' + c.id + '/publish', { method: 'POST', body });
-      if (!r.pending) { toast('Publicado no Instagram.', 4000); return r; }
-      await new Promise(res => setTimeout(res, 8000));
-    }
-    throw new Error('O Instagram ainda está processando o vídeo. Tente publicar de novo em alguns minutos.');
   }
   async function downloadAll(box, c) {
     const svgs = JSON.parse($('#pv', box).dataset.svgs || '[]');
