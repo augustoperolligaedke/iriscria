@@ -77,25 +77,28 @@
     if (step === 'instagram') return stepInstagram(o, r);
   }
   function stepStore(o) {
-    const isSite = v => /\.[a-z]{2,}(\/|$)/i.test(v) && !/instagram\.com/i.test(v);
-    const prev = o.store || '', prevSite = isSite(prev) ? prev : '', prevIg = prevSite ? (o.ig_handle || '') : prev;
     main.innerHTML = `<img class="mark" src="/assets/iris-mark.png" alt="">
-      <div class="stack center"><h1>Qual é o @ da sua loja?</h1><p class="lead">A Íris pega o nome da marca e prepara seu primeiro conteúdo com uma foto do celular.</p></div>
+      <div class="stack center"><h1>Vamos criar seu primeiro post.</h1><p class="lead">Leva dois minutos. Escolha como começar.</p></div>
+      <div class="start-opts">
+        <button class="start-opt on" type="button" data-opt="foto"><b>Começar com uma foto</b><span>Mande a foto de uma peça. As cores da marca saem da foto.</span></button>
+        <button class="start-opt" type="button" data-opt="site"><b>Tenho site ou loja virtual</b><span>Eu leio logo, cores, fonte e o catálogo com preços.</span></button>
+      </div>
       <form class="card" id="f">
-        <div class="field"><label for="ig">Instagram da loja</label><input class="input" id="ig" placeholder="@sualoja" autocapitalize="none" autocomplete="off" spellcheck="false" value="${esc(prevIg)}"></div>
-        <div class="field" id="site-box" ${prevSite ? '' : 'hidden'}><label for="site">Site da loja (opcional)</label><input class="input" id="site" placeholder="sualoja.com.br" inputmode="url" autocapitalize="none" value="${esc(prevSite)}"><p class="micro">Com site, a Íris puxa logo, cores e produtos sozinha.</p></div>
-        ${prevSite ? '' : '<button class="btn btn-ghost btn-sm" type="button" id="has-site">Tenho site</button>'}
+        <div class="field" id="f-foto"><label for="name">Nome da loja</label><input class="input" id="name" placeholder="Ex.: Closet da Ju" autocomplete="organization" value="${esc(o.brand?.name || '')}"></div>
+        <div class="field" id="f-site" hidden><label for="site">Site da loja</label><input class="input" id="site" placeholder="sualoja.com.br" inputmode="url" autocapitalize="none" value="${esc(/\./.test(o.store || '') ? o.store : '')}"></div>
         <p class="hint" id="h"></p>
         <button class="btn btn-primary btn-block" type="submit"><span class="spin"></span>Continuar</button></form>
       ${me.user ? '' : '<p class="micro center">Já tem conta? <a href="#/login">Entrar</a></p>'}`;
-    if ($('#has-site')) $('#has-site').onclick = () => { $('#site-box').hidden = false; $('#has-site').remove(); $('#site').focus(); };
+    let opt = /\./.test(o.store || '') ? 'site' : 'foto';
+    const setOpt = v => { opt = v; $$('.start-opt').forEach(x => x.classList.toggle('on', x.dataset.opt === v)); $('#f-foto').hidden = v !== 'foto'; $('#f-site').hidden = v !== 'site'; (v === 'site' ? $('#site') : $('#name')).focus(); };
+    $$('.start-opt').forEach(x => x.onclick = () => setOpt(x.dataset.opt)); setOpt(opt);
     $('#f').onsubmit = e => { e.preventDefault();
-      let ig = $('#ig').value.trim(), site = $('#site').value.trim();
-      if (isSite(ig) && !site) { site = ig; ig = ''; }   // colou o site no campo do @
-      const handle = ig.replace(/^(https?:\/\/)?(www\.)?instagram\.com\//i, '').replace(/^@/, '').split(/[/?#\s]/)[0];
-      if (!handle && !site) { $('#h').textContent = 'Digite o @ da loja no Instagram.'; return; }
-      ONB.set({ ...o, store: site || '@' + handle, ig_handle: site && handle ? handle : null, step: 'analyze' }); render(); };
+      if (opt === 'site') { const v = $('#site').value.trim(); if (!/\.[a-z]{2,}/i.test(v)) { $('#h').textContent = 'Cole o endereço do site, como sualoja.com.br.'; return; } ONB.set({ ...o, store: v, step: 'analyze' }); return render(); }
+      const name = $('#name').value.trim(); if (name.length < 2) { $('#h').textContent = 'Digite o nome da loja.'; return; }
+      // sem site: a marca começa do nome, as cores saem da foto do produto e a estratégia é confirmada na próxima tela
+      ONB.set({ ...o, store: '', brand: { name, colors: { primary: '#1F140D', secondary: '#FFFFFF', accent: '#FFD83A' }, font: 'Manrope', tone: '', icp: '', strategy: { close_channel: 'whatsapp', emoji: true } }, products: [], meta: { colors_from_photo: true, no_site: true }, step: 'brand' }); render(); };
   }
+
   async function stepAnalyze(o) {
     main.innerHTML = `<img class="mark" src="/assets/iris-mark.png" alt="">${stepsBar(1)}
       <div class="stack center"><h1>Lendo ${esc(o.store)}</h1><p class="lead" id="msg">Procurando cores, fonte, fotos e o jeito de falar da sua loja.</p><div class="progress"><i id="bar"></i></div></div>`;
@@ -172,29 +175,50 @@
     if (!accent) accent = hsl(primary)[2] < 0.3 ? mix(primary, [255, 255, 255], 0.55) : mix(primary, [0, 0, 0], 0.5);
     return { logo: null, from: 'foto do produto', colors: { primary: hex(...primary), secondary: hex(...bg), accent: hex(...accent) } };
   }
-  function brandForm(b, meta) {
-    const c = b.colors || {};
+  function brandForm(b, meta, full = false) {
+    const c = b.colors || {}, st = b.strategy || {};
+    const tiers = [['popular', 'Popular'], ['intermediario', 'Intermediário'], ['premium', 'Premium']], chans = [['whatsapp', 'WhatsApp'], ['site', 'Site'], ['direct', 'Direct'], ['loja', 'Loja física']];
     return `<div class="stack">
       ${meta?.site_error === 'blocked' ? `<p class="micro">O site da loja bloqueia leitura automática. Peguei nome e cores pelo logo público. Confira o resto.</p>` : meta?.site_error ? `<p class="micro">Não consegui ler o site (${esc(meta.site_error)}). Confira o que preenchi.</p>` : ''}
       ${meta?.site_guessed ? `<p class="micro">Achei o site da loja pelo @ e usei ele para logo, cores e produtos.</p>` : ''}
-      ${meta?.need_site ? `<div class="card" style="padding:12px"><p class="micro" style="margin-top:0">O Instagram não deixa ler o perfil sem login. Se a loja tem site, cole aqui e eu puxo logo, cores e produtos. Se não tem, siga: você envia as fotos no próximo passo.</p><div class="row" style="gap:8px"><input class="input" id="b-site" placeholder="sualoja.com.br" inputmode="url" autocapitalize="none" style="flex:1"><button class="btn btn-ghost btn-sm" type="button" id="b-site-go">Puxar do site</button></div></div>` : ''}
+      ${meta?.need_site || meta?.no_site ? `<div class="card" style="padding:12px"><p class="micro" style="margin-top:0">Tem site? Cole aqui e eu puxo logo, cores e produtos com preço. Se não tem, siga: você manda a foto no próximo passo.</p><div class="row" style="gap:8px"><input class="input" id="b-site" placeholder="sualoja.com.br" inputmode="url" autocapitalize="none" style="flex:1"><button class="btn btn-ghost btn-sm" type="button" id="b-site-go">Puxar do site</button></div></div>` : ''}
       <div class="logo-row">${b.logo_url ? `<img src="/api/img?u=${encodeURIComponent(b.logo_url)}" alt="" onerror="this.remove()">` : ''}<div class="field" style="flex:1"><label for="b-name">Nome da marca</label><input class="input" id="b-name" value="${esc(b.name || '')}" placeholder="Nome da loja"></div></div>
       <div class="field"><span class="lbl">Cores</span>${meta?.colors_from ? `<p class="micro">Tiradas do ${esc(meta.colors_from)}.</p>` : meta?.colors_from_photo ? '<p class="micro">Vou tirar as cores da foto do produto no próximo passo. Se preferir, escolha agora.</p>' : ''}<div class="row" style="gap:16px">
         <label class="swatch"><input type="color" id="c-primary" value="${esc(c.primary || '#1F140D')}"><span>Principal</span></label>
         <label class="swatch"><input type="color" id="c-secondary" value="${esc(c.secondary || '#FFF9EF')}"><span>Fundo</span></label>
         <label class="swatch"><input type="color" id="c-accent" value="${esc(c.accent || '#FFD83A')}"><span>Destaque</span></label></div></div>
+      <fieldset class="sell"><legend>Como você vende</legend>${meta?.no_site ? '' : '<p class="micro">Preenchi pelo que vi no site. Confira, isso muda o jeito de cada post vender.</p>'}
+        <div class="field"><span class="lbl">Faixa de preço</span><div class="chips" id="st-tier">${tiers.map(([k, l]) => `<button class="chip" type="button" data-tier="${k}" aria-pressed="${st.price_tier === k}">${l}</button>`).join('')}</div></div>
+        <div class="field"><label for="st-diff">Por que comprar com você</label><input class="input" id="st-diff" value="${esc(st.differential || '')}" placeholder="Ex.: estampas autorais e troca fácil"></div>
+        <div class="field"><span class="lbl">Onde a venda fecha</span><div class="chips" id="st-chan">${chans.map(([k, l]) => `<button class="chip" type="button" data-chan="${k}" aria-pressed="${st.close_channel === k}">${l}</button>`).join('')}</div>
+          <input class="input" id="st-wa" value="${esc(st.whatsapp || '')}" placeholder="WhatsApp da loja, com DDD" inputmode="tel" ${st.close_channel === 'whatsapp' ? '' : 'hidden'}></div>
+        <div class="field"><label for="st-cond">Condições que você sempre oferece</label><input class="input" id="st-cond" value="${esc(st.conditions || '')}" placeholder="Ex.: 3x sem juros · frete grátis acima de R$ 199"></div>
+        ${full ? `<div class="field"><label for="st-occ">Ocasiões de uso das suas clientes</label><input class="input" id="st-occ" value="${esc(st.occasions || '')}" placeholder="Ex.: trabalho, festa, praia"></div>
+        <div class="field"><label for="st-avoid">Palavras ou temas que a marca nunca usa</label><input class="input" id="st-avoid" value="${esc(st.avoid || '')}" placeholder="Ex.: barato, promoção relâmpago"></div>
+        <label class="row" style="gap:10px;font-size:15px"><input type="checkbox" id="st-emoji" ${st.emoji === false ? '' : 'checked'}> Pode usar emoji nas legendas</label>` : ''}
+      </fieldset>
       <div class="field"><label for="b-font">Fonte</label><select class="input" id="b-font">${[...new Set([b.font, ...FONTS].filter(Boolean))].map(f => `<option ${f === b.font ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select></div>
       <div class="field"><label for="b-tone">Tom de voz</label><textarea class="input" id="b-tone" placeholder="Ex.: próximo, direto e confiante">${esc(b.tone || '')}</textarea></div>
       <div class="field"><label for="b-icp">Quem compra</label><textarea class="input" id="b-icp" placeholder="Ex.: mulheres de 25 a 40 que seguem a loja e compram por impulso quando veem novidade">${esc(b.icp || '')}</textarea></div>
       <div class="field"><label for="b-ig">Instagram</label><input class="input" id="b-ig" value="${esc(b.instagram || '')}" placeholder="@sualoja" autocapitalize="none"></div>
     </div>`;
   }
+  function bindBrandForm() {
+    $$('[data-tier]').forEach(x => x.onclick = () => $$('[data-tier]').forEach(y => y.setAttribute('aria-pressed', String(y === x))));
+    $$('[data-chan]').forEach(x => x.onclick = () => { $$('[data-chan]').forEach(y => y.setAttribute('aria-pressed', String(y === x))); $('#st-wa').hidden = x.dataset.chan !== 'whatsapp'; });
+  }
+  function readStrategy(b) {
+    const v = id => $(id)?.value.trim() || null, prev = b.strategy || {};
+    return { ...prev, price_tier: $('[data-tier][aria-pressed="true"]')?.dataset.tier || null, differential: v('#st-diff'), close_channel: $('[data-chan][aria-pressed="true"]')?.dataset.chan || null, whatsapp: v('#st-wa'), conditions: v('#st-cond'),
+      ...($('#st-occ') ? { occasions: v('#st-occ'), avoid: v('#st-avoid'), emoji: $('#st-emoji').checked } : {}) };
+  }
   function readBrandForm(b) {
-    return { ...b, name: $('#b-name').value.trim(), colors: { primary: $('#c-primary').value, secondary: $('#c-secondary').value, accent: $('#c-accent').value }, font: $('#b-font').value, tone: $('#b-tone').value.trim(), icp: $('#b-icp').value.trim(), instagram: $('#b-ig').value.trim().replace(/^@/, '') };
+    return { ...b, strategy: readStrategy(b), name: $('#b-name').value.trim(), colors: { primary: $('#c-primary').value, secondary: $('#c-secondary').value, accent: $('#c-accent').value }, font: $('#b-font').value, tone: $('#b-tone').value.trim(), icp: $('#b-icp').value.trim(), instagram: $('#b-ig').value.trim().replace(/^@/, '') };
   }
   function stepBrand(o) {
     main.innerHTML = `${stepsBar(2)}<div class="stack"><span class="eyebrow">Sua marca</span><h1>Foi isso que eu entendi.</h1><p class="lead">Confira e ajuste. Vou usar em todo conteúdo.</p></div>
-      <form class="card" id="f">${brandForm(o.brand, o.meta)}<button class="btn btn-primary btn-block" type="submit">Isso é a minha marca</button><button class="btn btn-ghost btn-block" type="button" id="back">Trocar a loja</button></form>`;
+      <form class="card" id="f">${brandForm(o.brand, o.meta)}<button class="btn btn-primary btn-block" type="submit">Isso é a minha marca</button><button class="btn btn-ghost btn-block" type="button" id="back">Voltar</button></form>`;
+    bindBrandForm();
     $('#f').onsubmit = e => { e.preventDefault(); const nb = readBrandForm(o.brand); const norm = c => ['primary', 'secondary', 'accent'].map(k => String(c?.[k] || '').toLowerCase()).join(), same = norm(nb.colors) === norm(o.brand.colors);
       ONB.set({ ...o, brand: { ...nb, colors_pending: !!o.meta?.colors_from_photo && same }, step: 'product' }); render(); };
     $('#back').onclick = () => { ONB.set({ store: '' }); render(); };
@@ -757,10 +781,11 @@
     const b = me.brand || { colors: {} };
     main.innerHTML = `<div class="stack"><span class="eyebrow">Configurações</span><h1>Sua marca</h1><p class="lead">${esc(me.user.email)}</p></div>
       <nav class="subnav"><a href="#/conta" aria-current="page">Marca e integrações</a><a href="#/plano">Plano e pagamento</a></nav>
-      <form class="card" id="f">${brandForm(b, null)}<button class="btn btn-primary btn-block" type="submit">Salvar</button></form>
+      <form class="card" id="f">${brandForm(b, null, true)}<button class="btn btn-primary btn-block" type="submit">Salvar</button></form>
       <div class="card" id="wa"><h3>WhatsApp</h3>${me.user.phone ? `<p class="lead">Conectado: ${esc(me.user.phone)}. Mande a foto de um produto com nome e preço na legenda.</p>` : me.whatsapp ? `<p class="lead">Mande a foto, receba o post. Conecte seu número em dois passos.</p><button class="btn btn-ghost" id="wa-code">Gerar código</button><div id="wa-out"></div>` : `<p class="lead">Mande a foto pelo WhatsApp e receba o post pronto. Disponível no plano Pro, em breve neste ambiente.</p>`}</div>
       <div class="card" id="ig"><h3>Instagram</h3>${igCard('conta')}${me.instagram?.account ? '<button class="btn btn-ghost btn-sm" id="ig-off">Desconectar</button>' : ''}</div>
       <button class="btn btn-ghost btn-block" id="out">Sair</button>`;
+    bindBrandForm();
     if (r?.q?.get('ig')) igToast(r.q.get('ig'));
     if ($('#ig-off')) $('#ig-off').onclick = async () => { await api('/instagram', { method: 'DELETE' }); await loadMe(); toast('Instagram desconectado.'); viewAccount(); };
     $('#f').onsubmit = async e => { e.preventDefault(); await api('/brand', { method: 'PUT', body: readBrandForm(b) }); await loadMe(); toast('Marca salva.'); };

@@ -131,6 +131,9 @@ CREATE TABLE IF NOT EXISTS ig_insights_cache (
   updated_at TEXT NOT NULL
 );
 
+-- migrations/0005_brand_strategy.sql
+ALTER TABLE brands ADD COLUMN IF NOT EXISTS strategy TEXT;
+
 -- segurança
 ALTER TABLE brands ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contents ENABLE ROW LEVEL SECURITY;

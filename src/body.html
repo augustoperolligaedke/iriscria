@@ -79,8 +79,8 @@
       <form class="hero-cta" id="hero-form" novalidate>
         <div class="hero-form with-icon">
           <svg class="in-icon" aria-hidden="true"><use href="#i-ig"/></svg>
-          <label class="sr" for="hero-loja">@ da sua loja no Instagram</label>
-          <input class="input" id="hero-loja" name="loja" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="@sualoja">
+          <label class="sr" for="hero-loja">Site da sua loja (opcional)</label>
+          <input class="input" id="hero-loja" name="loja" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="Site da loja (opcional)">
           <button class="btn btn-primary" type="submit"><span class="spin" aria-hidden="true"></span><span>Criar meus primeiros posts</span></button>
         </div>
         <ul class="checks" aria-label="Condições"><li><svg aria-hidden="true"><use href="#i-check"/></svg>2 posts grátis</li><li><svg aria-hidden="true"><use href="#i-check"/></svg>Sem cartão</li></ul>
@@ -325,12 +325,12 @@
     <div class="stack reveal" style="gap:24px">
       <div class="offer-head"><img src="assets/iris-mark.png" alt="" width="64" height="64"><span class="eyebrow">Comece agora</span></div>
       <h2 class="h2">Sua novidade merece<br>mais do que uma foto parada.</h2>
-      <p class="lead">Digite o @ da sua loja e mande a foto de uma peça. A Íris cria seu primeiro reels e carrossel na hora, com as suas cores.</p>
+      <p class="lead">Mande a foto de uma peça. Se tiver site, cole o endereço e a Íris puxa suas cores e seu catálogo. Seu primeiro reels e carrossel saem na hora.</p>
       <form class="hero-cta" id="offer-form" novalidate>
         <div class="hero-form with-icon">
           <svg class="in-icon" aria-hidden="true"><use href="#i-ig"/></svg>
-          <label class="sr" for="offer-loja">@ da sua loja no Instagram</label>
-          <input class="input" id="offer-loja" name="loja" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="@sualoja">
+          <label class="sr" for="offer-loja">Site da sua loja (opcional)</label>
+          <input class="input" id="offer-loja" name="loja" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="Site da loja (opcional)">
           <button class="btn btn-primary" type="submit"><span class="spin" aria-hidden="true"></span><span>Criar meus primeiros posts</span></button>
         </div>
         <ul class="checks" aria-label="Condições"><li><svg aria-hidden="true"><use href="#i-check"/></svg>2 posts grátis</li><li><svg aria-hidden="true"><use href="#i-check"/></svg>Sem cartão</li></ul>
@@ -395,7 +395,7 @@
       <details><summary><span class="q">Preciso saber editar?<svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><div class="a"><p>Você parte de uma criação pronta e ajusta texto, preço e identidade dentro do app.</p></div></details>
       <details><summary><span class="q">O plano grátis inclui vídeos?<svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><div class="a"><p>O plano gratuito começa com posts de imagem. Vídeos e maior volume ficam nos planos pagos.</p></div></details>
       <details><summary><span class="q">Posso baixar e publicar onde quiser?<svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><div class="a"><p>Sim. Você baixa os arquivos e publica no Instagram, no TikTok ou onde quiser.</p></div></details>
-      <details><summary><span class="q">Preciso esperar para começar?<svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><div class="a"><p>Não. Digite o @ da loja, mande a foto de uma peça e seu primeiro reels e carrossel saem na hora, de graça.</p></div></details>
+      <details><summary><span class="q">Preciso esperar para começar?<svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><div class="a"><p>Não. Mande a foto de uma peça e seu primeiro reels e carrossel saem na hora, de graça. Se tiver site, a Íris ainda puxa suas cores e seu catálogo.</p></div></details>
       <details><summary><span class="q">Quanto custa depois?<svg aria-hidden="true"><use href="#i-plus"/></svg></span></summary><div class="a"><p>O plano gratuito é contínuo, com 2 posts por mês. Os planos pagos começam em R$ 59 por mês, com escopo semanal, e estão na seção de preços.</p></div></details>
     </div>
   </div>
@@ -559,7 +559,8 @@
     form.addEventListener('submit',function(ev){
       ev.preventDefault();
       var v=inp.value.trim().replace(/^https?:\/\//,'').replace(/\/$/,'');
-      if(v.length<3){hint.textContent='Cole o link da loja ou o @ do Instagram para continuar.';inp.classList.add('err');inp.focus();return}
+      if(!v){try{sessionStorage.removeItem('iris-loja')}catch(e){}location.href=DEMO?'obrigado.html':'/app/#/start';return}
+if(!/\.[a-z]{2,}/i.test(v)){hint.textContent='Cole o endereço do site, como sualoja.com.br, ou deixe em branco.';inp.classList.add('err');inp.focus();return}
       hint.textContent='';inp.classList.remove('err');btn.setAttribute('aria-busy','true');
       var go=function(){try{sessionStorage.setItem('iris-loja',v);sessionStorage.setItem('iris-demo',DEMO?'1':'')}catch(e){}location.href=DEMO?'obrigado.html':'/app/#/start?loja='+encodeURIComponent(v)};
       if(DEMO){setTimeout(go,600);return}

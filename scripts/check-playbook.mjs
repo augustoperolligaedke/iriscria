@@ -1,5 +1,6 @@
 // Checa as travas do playbook contra saídas ruins de IA. Rode antes de todo deploy: node scripts/check-playbook.mjs
 import { enforce, LIMITS, FUNNEL } from '../lib/playbook.js';
+import { inferStrategy, captionCta, strategyPrompt } from '../lib/strategy.js';
 
 let fail = 0;
 const ok = (cond, msg) => { if (!cond) { fail++; console.error('✗', msg); } else console.log('✓', msg); };
@@ -25,6 +26,14 @@ ok(['motion', 'natural'].includes(reel.video_style), 'reels: estilo motion ou na
 
 for (const f of ['feed', 'carousel', 'reel']) { const r = enforce(f, { caption: 'Legenda normal da loja.', slides: [{ title: 'Um dois' }] }, prod); ok(r.caption === 'Legenda normal da loja.', `${f}: legenda curta passa intacta`); }
 { const r = enforce('feed', { hook: 'Piso brilhando loja-exemplo.com.br', body: 'Seca rápido. www.loja.com.br' }, prod); ok(!/\.com/.test(r.hook + r.body), `arte sem endereço de site → "${r.hook}" / "${r.body}"`); }
+{ const r = enforce('feed', { hook: 'Vestido novo', caption: 'Chegou ✨ o vestido 😍 da coleção' }, prod, { emoji: false }); ok(!/\p{Extended_Pictographic}/u.test(r.caption), `loja sem emoji: legenda limpa → "${r.caption}"`); }
+{ const st = inferStrategy({ text: 'Frete grátis acima de R$ 299. Pague em 6x sem juros. Troca fácil.', site_url: 'https://x.com' }, [{ price: 'R$ 479' }, { price: 'R$ 898' }, { price: 'R$ 119,20' }]);
+  ok(st.price_tier === 'premium', `mediana R$ 479 → premium (${st.price_tier})`);
+  ok(/Frete grátis acima de R\$ 299/.test(st.conditions) && /6x sem juros/.test(st.conditions) && /Troca fácil/.test(st.conditions), `condições lidas do site → "${st.conditions}"`);
+  ok(st.close_channel === 'site', 'loja com site fecha pelo site');
+  ok(/não destaque desconto/i.test(strategyPrompt(st)), 'premium: prompt proíbe destacar desconto na arte'); }
+ok(inferStrategy({ whatsapp: '5541999999999' }, [{ price: 'R$ 59,90' }]).close_channel === 'whatsapp' && inferStrategy({}, [{ price: 'R$ 59,90' }]).price_tier === 'popular', 'WhatsApp no site → fecha no WhatsApp; R$ 59,90 → popular');
+ok(/WhatsApp/.test(captionCta({ close_channel: 'whatsapp' })) && /direct/.test(captionCta({ close_channel: 'direct' })), 'chamada da legenda segue o canal de venda');
 const empty = ['feed', 'carousel', 'reel'].map(f => enforce(f, null, prod));
 ok(empty[0].hook && empty[1].slides.length && empty[2].video_prompt, 'saída vazia da IA não quebra nenhum formato');
 ok(FUNNEL.reel.stage === 'topo' && FUNNEL.carousel.stage === 'meio' && FUNNEL.feed.stage === 'fundo', 'funil: reels topo, carrossel meio, feed fundo');

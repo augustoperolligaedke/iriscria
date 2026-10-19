@@ -2,6 +2,7 @@ import { json, readJson, fail } from '../../../lib/util.js';
 import { normalizeStore, scrapeSite, scrapeInstagram, pickName, guessSiteFromHandle } from '../../../lib/brand.js';
 import { inferBrand } from '../../../lib/llm.js';
 import { readCatalog } from '../../../lib/catalog.js';
+import { inferStrategy, normalizeStrategy } from '../../../lib/strategy.js';
 
 export async function onRequestPost({ request, env }) {
   const body = await readJson(request);
@@ -32,6 +33,7 @@ export async function onRequestPost({ request, env }) {
     // cores finais saem do logo e do fundo do site, extraídas no navegador; estas são o ponto de partida
     colors: { primary: inferred.palette?.primary || raw.colors[0] || '#1F140D', secondary: raw.bg || inferred.palette?.secondary || '#FFFFFF', accent: inferred.palette?.accent || '#FFD83A' },
     font: inferred.font || raw.fonts[0] || 'Manrope', tone: inferred.tone || '', icp: inferred.icp || '', logo_url: raw.logo || null,
+    strategy: normalizeStrategy({ ...inferStrategy(raw, products, inferred.category, catalog.platform), ...(inferred.differential ? { differential: inferred.differential } : {}), ...(inferred.occasions ? { occasions: inferred.occasions } : {}) }),
   }, products, meta: { catalog: catalog.platform || null, site_guessed: siteGuessed, need_site: !n.site_url, site_error: raw.error || null, instagram_blocked: !!ig?.blocked, colors_found: raw.colors, fonts_found: raw.fonts, site_bg: raw.bg || null, logo_candidates: raw.logo_candidates || [] } });
 }
 
