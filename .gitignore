@@ -1,0 +1,17 @@
+# segredos: nunca versionar
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+*.pem
+*.key
+
+# gerados / locais
+.wrangler/
+node_modules/
+dist/
+supabase/.temp
+*.sql.dump
+d1-*.sql
+.DS_Store

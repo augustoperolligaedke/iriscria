@@ -1,0 +1,39 @@
+# Copie para .dev.vars (local) ou configure como secrets no Cloudflare Pages.
+# LLM (OpenAI ou compatível, ex.: OpenRouter)
+LLM_API_KEY=
+# Higgsfield (console.higgsfield.ai)
+HF_API_KEY_ID=
+HF_API_KEY_SECRET=
+# E-mail do código de acesso (Resend). Sem chave, o código aparece na resposta em dev.
+RESEND_API_KEY=
+MAIL_FROM=iris <oi@iriscria.com.br>
+# Stripe
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_PRICE_BASICO=
+STRIPE_PRICE_PRO=
+STRIPE_PRICE_LOJA=
+# Tyxter (WhatsApp)
+TYXTER_API_KEY=
+TYXTER_SENDER_ID=
+TYXTER_SENDER_PHONE=
+TYXTER_WEBHOOK_SECRET=
+# Instagram (app da Meta com o produto "Instagram API with Instagram Login"). Redirect: APP_URL/api/instagram/callback
+IG_APP_ID=
+IG_APP_SECRET=
+# Pix (AbacatePay, API v2). Crie um produto avulso por plano (e um anual opcional) e cole os ids.
+# Webhook: APP_URL/api/billing/abacatepay?webhookSecret=<ABACATE_WEBHOOK_SECRET>, evento checkout.completed
+ABACATE_API_KEY=
+ABACATE_WEBHOOK_SECRET=
+ABACATE_PRODUCT_BASICO=
+ABACATE_PRODUCT_PRO=
+ABACATE_PRODUCT_LOJA=
+ABACATE_PRODUCT_BASICO_ANUAL=
+ABACATE_PRODUCT_PRO_ANUAL=
+ABACATE_PRODUCT_LOJA_ANUAL=
+# Login com Google (Google Cloud > Credenciais > ID do cliente OAuth, tipo Web).
+# Redirecionamentos autorizados: APP_URL/api/auth/google/callback (produção e http://localhost:4000)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+# Só local: mostra o código de login na tela quando não há RESEND_API_KEY
+DEV_SHOW_CODE=1

@@ -1,0 +1,29 @@
+name = "iriscria"
+compatibility_date = "2026-05-03"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "public"
+
+[vars]
+APP_URL = "https://iriscria.pages.dev"
+LLM_MODEL = "gpt-4.1-mini"
+LLM_BASE_URL = "https://api.openai.com/v1"
+HF_VIDEO_MODEL = "bytedance/seedance-2.5/reference-to-video"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "iris"
+database_id = "d9c8a97b-a6e7-42a0-aed3-d43cb9c40f11"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "iris-media"
+
+[[kv_namespaces]]
+binding = "LEADS"
+id = "2421c0daf94145b59ff857b0ede7c9a0"
+
+# Banco principal: Supabase (projeto "iris", São Paulo) via Hyperdrive. Sem este bloco o app volta para o D1.
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "74ab15770f234e9980a9412c28291f4a"
+localConnectionString = "postgres://iris:local@127.0.0.1:54329/iris"

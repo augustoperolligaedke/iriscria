@@ -1,0 +1,1 @@
+{"name":"Íris","short_name":"Íris","start_url":"/app/","scope":"/app/","display":"standalone","background_color":"#FFF9EF","theme_color":"#FFD83A","icons":[{"src":"/assets/favicon.png","sizes":"180x180","type":"image/png"},{"src":"/assets/iris-mark.png","sizes":"640x640","type":"image/png","purpose":"any maskable"}]}
