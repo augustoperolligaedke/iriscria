@@ -426,3 +426,26 @@ textarea.input{min-height:96px;resize:vertical}
 .btn-ig{background:linear-gradient(45deg,#F9CE34,#EE2A7B 55%,#6228D7);color:#fff;border:0}
 .card.danger{border-color:color-mix(in srgb,var(--err) 35%,var(--line))}.card.danger h3{color:var(--err)}
 #del-confirm{display:grid;gap:8px}#del-confirm[hidden]{display:none}
+/* entrada pela foto: galeria principal, câmera ao lado */
+.sr{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+.shoot{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:10px}
+.shoot label{position:relative;display:grid;place-items:center;align-content:center;gap:6px;min-height:168px;padding:16px;border-radius:24px;cursor:pointer;text-align:center;transition:transform .4s var(--ease),opacity .4s var(--ease)}
+.shoot label:active{transform:scale(.98)}
+.shoot label:focus-within{outline:3px solid var(--primary);outline-offset:3px}
+.shoot label[aria-busy="true"]{opacity:.6;pointer-events:none}
+.shoot svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.shoot b{font-size:17px;line-height:22px}.shoot small{font-size:13px;line-height:18px;opacity:.8}
+.shoot-main{background:var(--primary);color:#fff;box-shadow:0 16px 32px -16px var(--primary)}
+.shoot-cam{background:var(--surface);color:var(--ink);border:2px solid var(--line)}
+.shoot-cam b{font-size:15px}
+@media (hover:hover) and (pointer:fine){.shoot{grid-template-columns:1fr}.shoot .shoot-cam{display:none}}
+.site-alt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 16px;border-radius:16px;border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;cursor:pointer}
+.site-alt .oi{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--surface-2);flex:none}
+.site-alt svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.site-alt b{display:block;font-size:15px}.site-alt small{font-size:13px;color:var(--ink-2)}
+.piece{display:flex;gap:16px;align-items:center}
+.piece-img{position:relative;flex:none;width:96px;aspect-ratio:4/5;border-radius:14px;overflow:hidden;cursor:pointer;background:var(--surface-2)}
+.piece-img img{width:100%;height:100%;object-fit:cover}
+.piece-img small{position:absolute;left:0;right:0;bottom:0;padding:4px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;font-weight:700;text-align:center}
+.piece-img:focus-within{outline:3px solid var(--primary);outline-offset:3px}
+.sw-mini{gap:10px}.sw-mini .swatch input{width:40px;height:40px}

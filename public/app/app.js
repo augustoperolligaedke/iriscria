@@ -56,14 +56,16 @@
 
   /* ---------- onboarding ---------- */
   const ONB = { get: () => { try { return JSON.parse(ss.get('iris-onb') || '{}'); } catch { return {}; } }, set: o => ss.set('iris-onb', JSON.stringify(o)) };
-  function stepsBar(n) { return `<div class="steps">${[1, 2, 3, 4].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</div>`; }
+  function stepsBar(n, total = 4) { return `<div class="steps">${Array.from({ length: total }, (_, i) => i + 1).map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</div>`; }
 
   async function viewStart(r) {
     const o = ONB.get();
     if (r.q.get('lp')) ss.set('iris-lp', r.q.get('lp').replace(/[^a-z0-9-]/gi, '').slice(0, 30));
     if (r.q.get('beta') === 'ig') try { localStorage.setItem('iris-beta-ig', '1'); } catch {}
     const loja = r.q.get('loja') || ss.get('iris-loja') || o.store || '';
-    if (loja && !o.store) { o.store = loja; ONB.set(o); }
+    // @ vindo da landing só guarda o Instagram da loja; quem tem site cai na leitura do catálogo
+    if (loja && !/\./.test(loja) && !o.brand?.instagram) { o.brand = { ...(o.brand || {}), instagram: loja.replace(/^@/, '').trim() }; o.store = ''; ONB.set(o); }
+    else if (loja && /\./.test(loja) && !o.store) { o.store = loja; ONB.set(o); }
     if (me.user && me.brand && !o.step) { location.hash = '#/home'; return; }
     const step = o.step || (o.store ? 'analyze' : 'store');
     const igQ = r.q.get('ig'), sacQ = r.q.get('sacolinha');
@@ -77,6 +79,7 @@
     if (step === 'store') return stepStore(o);
     if (step === 'ig') return stepStore({ ...o, step: 'store' });
     if (step === 'analyze') return stepAnalyze(o);
+    if (step === 'details') return stepDetails(o);
     if (step === 'brand') return stepBrand(o);
     if (step === 'product') return stepProduct(o);
     if (step === 'auth') return stepAuth(o);
@@ -87,35 +90,71 @@
   }
   const igBeta = () => { try { return !!(me?.instagram?.enabled && (me.instagram.signup || localStorage.getItem('iris-beta-ig'))); } catch { return false; } };
   const OPI = {
-    ig: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/>',
+    galeria: '<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>',
     foto: '<rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/>',
     site: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9s1.3-6.3 3.8-9z"/>',
   };
+  // Padrões da loja pequena de moda feminina em que a dona vende, atende e posta: ela ajusta depois em Configurações.
+  const FASHION = { tone: 'Próximo, animado e direto, como a dona da loja falando com a cliente. Fala de caimento, combinação e ocasião de uso.', icp: 'Mulheres de 20 a 45 anos que seguem a loja no Instagram e compram a novidade quando veem a peça no look.', occasions: 'Trabalho, fim de semana, eventos e viagens' };
+  const shootBtns = () => `<div class="shoot">
+      <label class="shoot-main"><input class="sr" type="file" accept="image/*" data-shot><svg viewBox="0 0 24 24" aria-hidden="true">${OPI.galeria}</svg><b>Escolher da galeria</b><small>A foto da novidade que você já tirou</small></label>
+      <label class="shoot-cam"><input class="sr" type="file" accept="image/*" capture="environment" data-shot><svg viewBox="0 0 24 24" aria-hidden="true">${OPI.foto}</svg><b>Tirar foto</b></label></div>`;
+  // Entrada principal: uma foto do celular. O site é a alternativa para loja com catálogo; o Instagram vem depois do primeiro conteúdo.
   function stepStore(o) {
-    const ig = igBeta();
     main.innerHTML = `<img class="mark" src="/assets/iris-mark.png" alt="">
-      <div class="stack center"><h1>Vamos criar seu primeiro post.</h1><p class="lead">Escolha como começar. Leva menos de dois minutos.</p></div>
-      <div class="start-opts ${ig ? 'three' : ''}">
-        ${ig ? `<button class="start-opt" type="button" data-opt="ig"><span class="oi ig"><svg viewBox="0 0 24 24">${OPI.ig}</svg></span><b>Conectar meu Instagram</b><span>Puxo seu nome, suas cores e seus posts. O jeito mais rápido.</span></button>` : ''}
-        <button class="start-opt" type="button" data-opt="foto"><span class="oi"><svg viewBox="0 0 24 24">${OPI.foto}</svg></span><b>Começar com uma foto</b><span>Mande a foto de um produto. As cores saem dela.</span></button>
-        <button class="start-opt" type="button" data-opt="site"><span class="oi"><svg viewBox="0 0 24 24">${OPI.site}</svg></span><b>Tenho site ou loja virtual</b><span>Leio logo, cores, fonte e o catálogo com preços.</span></button>
-      </div>
-      <form class="card" id="f" hidden>
-        <div class="field" id="f-foto" hidden><label for="name">Nome da loja</label><input class="input" id="name" placeholder="Ex.: Closet da Ju" autocomplete="organization" value="${esc(o.brand?.name || '')}"></div>
-        <div class="field" id="f-site" hidden><label for="site">Site da loja</label><input class="input" id="site" placeholder="sualoja.com.br" inputmode="url" autocapitalize="none" value="${esc(/\./.test(o.store || '') ? o.store : '')}"></div>
-        <p class="hint" id="h"></p>
-        <button class="btn btn-primary btn-block" type="submit"><span class="spin"></span>Continuar</button></form>
+      <div class="stack center"><h1>Mostre uma peça nova.</h1><p class="lead">Uma foto do celular vira carrossel e reels com a cara da sua loja. No cabide, no manequim ou vestida.</p></div>
+      ${shootBtns()}
+      <button class="site-alt" type="button" id="site-open"><span class="oi"><svg viewBox="0 0 24 24">${OPI.site}</svg></span><span><b>Tenho site com catálogo</b><small>Puxo logo, cores e produtos com preço</small></span></button>
+      <form class="card" id="f" hidden><div class="field"><label for="site">Site da loja</label><input class="input" id="site" placeholder="sualoja.com.br" inputmode="url" autocapitalize="none" value="${esc(/\./.test(o.store || '') ? o.store : '')}"></div>
+        <p class="hint" id="hs"></p><button class="btn btn-primary btn-block" type="submit">Ler meu site</button></form>
       ${me.user ? '' : '<p class="micro center">Já tem conta? <a href="#/login">Entrar</a></p>'}`;
-    let opt = null;
-    const setOpt = v => {
-      if (v === 'ig') { ONB.set({ ...o, step: 'ig' }); location.href = '/api/instagram/connect?back=start'; return; }
-      opt = v; $$('.start-opt').forEach(x => x.classList.toggle('on', x.dataset.opt === v)); $('#f').hidden = false; $('#f-foto').hidden = v !== 'foto'; $('#f-site').hidden = v !== 'site'; (v === 'site' ? $('#site') : $('#name')).focus(); };
-    $$('.start-opt').forEach(x => x.onclick = () => setOpt(x.dataset.opt));
-    if (/\./.test(o.store || '')) setOpt('site');
-    $('#f').onsubmit = e => { e.preventDefault();
-      if (opt === 'site') { const v = $('#site').value.trim(); if (!/\.[a-z]{2,}/i.test(v)) { $('#h').textContent = 'Cole o endereço do site, como sualoja.com.br.'; return; } ONB.set({ ...o, store: v, step: 'analyze' }); return render(); }
-      const name = $('#name').value.trim(); if (name.length < 2) { $('#h').textContent = 'Digite o nome da loja.'; return; }
-      ONB.set({ ...o, store: '', brand: { name, colors: { primary: '#1F140D', secondary: '#FFFFFF', accent: '#FFD83A' }, font: 'Manrope', tone: '', icp: '', strategy: { close_channel: 'whatsapp', emoji: true } }, products: [], meta: { colors_from_photo: true, no_site: true }, step: 'brand' }); render(); };
+    bindShot(o);
+    const openSite = () => { $('#f').hidden = false; $('#site-open').hidden = true; $('#site').focus(); };
+    $('#site-open').onclick = openSite;
+    if (/\./.test(o.store || '')) openSite();
+    $('#f').onsubmit = e => { e.preventDefault(); const v = $('#site').value.trim(); if (!/\.[a-z]{2,}/i.test(v)) { $('#hs').textContent = 'Cole o endereço do site, como sualoja.com.br.'; return; } ONB.set({ ...o, store: v, step: 'analyze' }); render(); };
+  }
+  // Foto escolhida: as cores da marca saem dela e o próximo passo pede só o essencial.
+  function bindShot(o) {
+    $$('[data-shot]').forEach(inp => inp.onchange = async e => {
+      const f = e.target.files[0]; if (!f) return;
+      $$('.shoot label').forEach(l => l.setAttribute('aria-busy', 'true'));
+      try {
+        const data = await readPhoto(f), pal = await photoPalette(data).catch(() => null), b = o.brand || {};
+        ONB.set({ ...o, store: '', file_data: data, product: { name: o.product?.name || '', price: o.product?.price || '' },
+          brand: { font: 'Manrope', tone: FASHION.tone, icp: FASHION.icp, ...b, name: b.name || '', colors: pal?.colors || b.colors || { primary: '#1F140D', secondary: '#FFFFFF', accent: '#FFD83A' }, strategy: { close_channel: 'whatsapp', emoji: true, occasions: FASHION.occasions, ...(b.strategy || {}) } },
+          products: [], meta: { photo_first: true, no_site: true, colors_from: pal ? 'foto da peça' : null }, step: 'details' });
+        render(); scrollTo(0, 0);
+      } catch { $$('.shoot label').forEach(l => l.removeAttribute('aria-busy')); }
+    });
+  }
+  function stepDetails(o) {
+    if (!o.file_data) { ONB.set({ ...o, step: 'store' }); return render(); }
+    const b = o.brand || {}, c = b.colors || {}, st = b.strategy || {}, p = o.product || {};
+    const chans = [['whatsapp', 'WhatsApp'], ['direct', 'Direct'], ['loja', 'Loja física'], ['site', 'Site']];
+    main.innerHTML = `${stepsBar(2, 3)}<div class="stack"><span class="eyebrow">Sua novidade</span><h1>Agora me conta da peça.</h1><p class="lead">Só o que vai no post. O resto eu deixo pronto.</p></div>
+      <form class="card" id="f">
+        <div class="piece"><label class="piece-img" title="Trocar foto"><input class="sr" type="file" accept="image/*" id="swap"><img src="${o.file_data}" alt="Foto da peça"><small>Trocar</small></label>
+          <div class="stack" style="gap:8px"><span class="lbl">Cores da marca</span><div class="row sw-mini">${[['primary', 'Principal'], ['secondary', 'Fundo'], ['accent', 'Destaque']].map(([k, l]) => `<label class="swatch"><input type="color" id="c-${k}" value="${esc(c[k] || '#1F140D')}" aria-label="Cor ${l.toLowerCase()}"></label>`).join('')}</div>
+          <p class="fine">${o.meta?.colors_from ? 'Tiradas da foto. Toque para trocar.' : 'Toque para escolher.'}</p></div></div>
+        <div class="field"><label for="p-name">Nome da peça</label><input class="input" id="p-name" value="${esc(p.name || '')}" placeholder="Ex.: Vestido midi de linho" autocomplete="off"></div>
+        <div class="field"><label for="p-price">Preço</label><input class="input" id="p-price" value="${esc(p.price || '')}" placeholder="R$ 189" inputmode="decimal"></div>
+        <div class="field"><label for="p-offer">Condição ou oferta (opcional)</label><input class="input" id="p-offer" value="${esc(o.offer || '')}" placeholder="3x sem juros, frete grátis, só até domingo"></div>
+        <div class="field"><label for="b-name">Nome da loja</label><input class="input" id="b-name" value="${esc(b.name || '')}" placeholder="Ex.: Closet da Ju" autocomplete="organization"></div>
+        <div class="field"><span class="lbl">Onde você fecha a venda</span><div class="chips">${chans.map(([k, l]) => `<button class="chip" type="button" data-chan="${k}" aria-pressed="${st.close_channel === k}">${l}</button>`).join('')}</div></div>
+        <p class="hint" id="h"></p>
+        <button class="btn btn-primary btn-block" type="submit">Criar meu carrossel e reels</button>
+        <button class="btn btn-ghost btn-block" type="button" id="back">Voltar</button></form>`;
+    $$('[data-chan]').forEach(x => x.onclick = () => $$('[data-chan]').forEach(y => y.setAttribute('aria-pressed', String(y === x))));
+    const read = () => ({ ...o, product: { name: $('#p-name').value.trim(), price: $('#p-price').value.trim() }, offer: $('#p-offer').value.trim(),
+      brand: { ...b, name: $('#b-name').value.trim(), colors: { primary: $('#c-primary').value, secondary: $('#c-secondary').value, accent: $('#c-accent').value }, strategy: { ...st, close_channel: $('[data-chan][aria-pressed="true"]')?.dataset.chan || st.close_channel || null } } });
+    $('#swap').onchange = async e => { const f = e.target.files[0]; if (!f) return; try { const data = await readPhoto(f), pal = await photoPalette(data).catch(() => null), n = read(); ONB.set({ ...n, file_data: data, brand: pal && o.meta?.colors_from ? { ...n.brand, colors: pal.colors } : n.brand }); render(); } catch { } };
+    if (!p.name) $('#p-name').focus();
+    $('#f').onsubmit = e => { e.preventDefault(); const n = read();
+      if (!n.product.name) { $('#h').textContent = 'Dê um nome à peça.'; $('#p-name').focus(); return; }
+      if (n.brand.name.length < 2) { $('#h').textContent = 'Digite o nome da loja.'; $('#b-name').focus(); return; }
+      ONB.set({ ...n, step: me.user ? 'generate' : 'auth' }); render(); scrollTo(0, 0); };
+    $('#back').onclick = () => { ONB.set({ ...read(), step: 'store' }); render(); };
   }
   // Volta do login do Instagram: lê perfil, cores da foto do perfil, posts e, se houver, o site da bio.
   async function stepIgImport(o) {
@@ -360,12 +399,13 @@
   }
   function stepAuth(o) {
     if (me.user) { ONB.set({ ...o, step: 'generate' }); return render(); }
-    main.innerHTML = `${stepsBar(4)}<div class="stack"><span class="eyebrow">Quase lá</span><h1>Seu e-mail para guardar tudo.</h1><p class="lead">Entre com o Google em um toque, ou receba um código no e-mail. Sem senha, sem cartão.</p></div>
+    const pf = !!o.meta?.photo_first;
+    main.innerHTML = `${pf ? stepsBar(3, 3) : stepsBar(4)}<div class="stack"><span class="eyebrow">Quase lá</span><h1>Onde eu guardo seus posts?</h1><p class="lead">Entre com o Google em um toque, ou receba um código no e-mail. Sem senha, sem cartão. Logo depois eu crio.</p></div>
       <form class="card" id="f">${googleBtn('start')}<div class="field"><label for="email">E-mail</label><input class="input" id="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@sualoja.com.br" value="${esc(o.email || '')}"></div><p class="hint" id="h"></p>
       <button class="btn btn-primary btn-block" type="submit"><span class="spin"></span>Receber código</button><button class="btn btn-ghost btn-block" type="button" id="back">Voltar</button></form>`;
     $('#f').onsubmit = async e => { e.preventDefault(); const email = $('#email').value.trim(); const btn = $('#f button[type=submit]'); busy(btn, true);
       try { const d = await api('/auth/request', { method: 'POST', body: { email } }); ONB.set({ ...o, email }); codeForm(email, d.dev_code, async () => { await loadMe(); ONB.set({ ...ONB.get(), step: 'generate' }); render(); }); } catch (err) { $('#h').textContent = err.message; } finally { busy(btn, false); } };
-    $('#back').onclick = () => { ONB.set({ ...o, step: 'product' }); render(); };
+    $('#back').onclick = () => { ONB.set({ ...o, step: pf ? 'details' : 'product' }); render(); };
   }
   function codeForm(email, devCode, onDone) {
     main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><h1>Digite o código</h1><p class="lead">Enviado para ${esc(email)}. Vale por 10 minutos.</p></div>
@@ -471,6 +511,8 @@
   }
   function stepInstagram(o) {
     const done = me.instagram?.account && !me.instagram.account.expired;
+    // conectar só faz sentido onde a Meta já libera a conta; sem isso, a pessoa segue direto para o painel
+    if (!done && !igBeta()) { ONB.set({}); location.hash = '#/home'; return; }
     main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><span class="eyebrow" style="justify-content:center">Último passo</span><h1>${done ? 'Tudo pronto para publicar.' : 'Conecte seu Instagram.'}</h1><p class="lead">${done ? 'Aprove um conteúdo e publique com um toque, sem baixar nada.' : 'Assim a Íris publica o que você aprovar, direto no seu perfil.'}</p></div>
       <div class="card">${igCard('start')}</div>
       <button class="btn ${done ? 'btn-primary' : 'btn-ghost'} btn-block" id="go">${done ? 'Ver meus conteúdos' : 'Agora não'}</button>`;
