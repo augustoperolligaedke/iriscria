@@ -99,8 +99,11 @@
   const shootBtns = () => `<div class="shoot">
       <label class="shoot-main"><input class="sr" type="file" accept="image/*" data-shot><svg viewBox="0 0 24 24" aria-hidden="true">${OPI.galeria}</svg><b>Escolher da galeria</b><small>A foto da novidade que você já tirou</small></label>
       <label class="shoot-cam"><input class="sr" type="file" accept="image/*" capture="environment" data-shot><svg viewBox="0 0 24 24" aria-hidden="true">${OPI.foto}</svg><b>Tirar foto</b></label></div>`;
+  const isDesktop = () => matchMedia('(hover:hover) and (pointer:fine)').matches;
   // Entrada principal: uma foto do celular. O site é a alternativa para loja com catálogo; o Instagram vem depois do primeiro conteúdo.
+  // No computador a entrada é só pelo site: a foto da novidade está no celular.
   function stepStore(o) {
+    if (isDesktop()) return stepStoreDesktop(o);
     main.innerHTML = `<img class="mark" src="/assets/iris-mark.png" alt="">
       <div class="stack center"><h1>Mostre uma peça nova.</h1><p class="lead">Uma foto do celular vira carrossel e reels com a cara da sua loja. No cabide, no manequim ou vestida.</p></div>
       ${shootBtns()}
@@ -114,6 +117,16 @@
     if (/\./.test(o.store || '')) openSite();
     $('#f').onsubmit = e => { e.preventDefault(); const v = $('#site').value.trim(); if (!/\.[a-z]{2,}/i.test(v)) { $('#hs').textContent = 'Cole o endereço do site, como sualoja.com.br.'; return; } ONB.set({ ...o, store: v, step: 'analyze' }); render(); };
   }
+  function stepStoreDesktop(o) {
+    main.innerHTML = `<img class="mark" src="/assets/iris-mark.png" alt="">
+      <div class="stack center"><h1>Cole o site da sua loja.</h1><p class="lead">Leio logo, cores, fonte e o catálogo com preços, e crio seu primeiro carrossel e reels.</p></div>
+      <form class="card" id="f"><div class="field"><label for="site">Site da loja</label><input class="input" id="site" placeholder="sualoja.com.br" inputmode="url" autocapitalize="none" value="${esc(/\./.test(o.store || '') ? o.store : '')}"></div>
+        <p class="hint" id="hs"></p><button class="btn btn-primary btn-block" type="submit">Ler meu site</button></form>
+      <p class="micro center">Não tem site? Abra <b>${esc(location.host)}/app</b> no celular e comece por uma foto da galeria.</p>
+      ${me.user ? '' : '<p class="micro center">Já tem conta? <a href="#/login">Entrar</a></p>'}`;
+    $('#site').focus();
+    $('#f').onsubmit = e => { e.preventDefault(); const v = $('#site').value.trim(); if (!/\.[a-z]{2,}/i.test(v)) { $('#hs').textContent = 'Cole o endereço do site, como sualoja.com.br.'; return; } ONB.set({ ...o, store: v, step: 'analyze' }); render(); };
+  }
   // Foto escolhida: as cores da marca saem dela e o próximo passo pede só o essencial.
   function bindShot(o) {
     $$('[data-shot]').forEach(inp => inp.onchange = async e => {
@@ -124,6 +137,7 @@
         ONB.set({ ...o, store: '', file_data: data, product: { name: o.product?.name || '', price: o.product?.price || '' },
           brand: { font: 'Manrope', tone: FASHION.tone, icp: FASHION.icp, ...b, name: b.name || '', colors: pal?.colors || b.colors || { primary: '#1F140D', secondary: '#FFFFFF', accent: '#FFD83A' }, strategy: { close_channel: 'whatsapp', emoji: true, occasions: FASHION.occasions, ...(b.strategy || {}) } },
           products: [], meta: { photo_first: true, no_site: true, colors_from: pal ? 'foto da peça' : null }, step: 'details' });
+        track('foto');
         render(); scrollTo(0, 0);
       } catch { $$('.shoot label').forEach(l => l.removeAttribute('aria-busy')); }
     });
@@ -153,7 +167,7 @@
     $('#f').onsubmit = e => { e.preventDefault(); const n = read();
       if (!n.product.name) { $('#h').textContent = 'Dê um nome à peça.'; $('#p-name').focus(); return; }
       if (n.brand.name.length < 2) { $('#h').textContent = 'Digite o nome da loja.'; $('#b-name').focus(); return; }
-      ONB.set({ ...n, step: me.user ? 'generate' : 'auth' }); render(); scrollTo(0, 0); };
+      track('peca'); ONB.set({ ...n, step: me.user ? 'generate' : 'auth' }); render(); scrollTo(0, 0); };
     $('#back').onclick = () => { ONB.set({ ...read(), step: 'store' }); render(); };
   }
   // Volta do login do Instagram: lê perfil, cores da foto do perfil, posts e, se houver, o site da bio.
@@ -209,6 +223,12 @@
     };
   }
   const pause = ms => new Promise(r => setTimeout(r, ms));
+  // funil do onboarding por página de origem: onde a jornada para (foto → peça → cadastro → instagram → valor)
+  function track(evento) {
+    try { const b = JSON.stringify({ etapa: 'evento', evento, lp: ss.get('iris-lp') || 'direto' }); navigator.sendBeacon ? navigator.sendBeacon('/api/lead', new Blob([b], { type: 'application/json' })) : fetch('/api/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, body: b }); } catch { }
+  }
+  // valor = a pessoa aproveitou o conteúdo (baixou, copiou a legenda ou publicou), não só gerou
+  function trackValue() { try { if (localStorage.getItem('iris-valor')) return; localStorage.setItem('iris-valor', '1'); } catch { } track('valor'); }
 
   async function stepAnalyze(o) {
     main.innerHTML = `${stepsBar(1)}<div id="run"></div>`;
@@ -438,7 +458,7 @@
       R.done('art', 'Paleta, fonte e hook aplicados');
       if (reel) { if (reel.spec?.mock) R.done('reel', 'Prévia animada pronta (vídeo real quando a chave do Higgsfield for ligada)'); else if (reel.status === 'failed') R.fail('reel', 'O vídeo falhou; a capa e a legenda estão prontas'); else R.done('reel', 'Enviado para o gerador. Fica pronto em 1 a 3 minutos'); }
       R.finish(); R.note('Pronto. Essa é a capa do seu carrossel.');
-      try { const b = JSON.stringify({ etapa: 'evento', evento: 'cadastro', lp: ss.get('iris-lp') || 'direto' }); navigator.sendBeacon ? navigator.sendBeacon('/api/lead', new Blob([b], { type: 'application/json' })) : fetch('/api/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, body: b }); } catch { }
+      track('cadastro');
       ONB.set({ step: 'result', ids: contents.map(c => c.id) }); ss.del('iris-loja');
       await loadMe();
       $('#run').insertAdjacentHTML('beforeend', '<button class="btn btn-primary btn-block" id="see" style="margin-top:4px">Ver meu conteúdo</button>');
@@ -455,9 +475,17 @@
     const ids = o.ids || [];
     if (!ids.length) { ONB.set({}); location.hash = '#/home'; return; }
     main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><span class="eyebrow" style="justify-content:center">Feito para ${esc(me.brand?.name || 'sua loja')}</span><h1>Olha o que a Íris criou.</h1><p class="lead">Seu carrossel e seu reels, com a cara da sua marca. Passe os slides, ajuste o texto se quiser.</p></div><div class="stack" id="out"></div>
-      <button class="btn btn-primary btn-block" id="next">Quero baixar e postar</button>`;
+      <button class="btn btn-primary btn-block" id="next" aria-busy="true"><span class="spin"></span>Finalizando seu reels…</button>`;
     for (const id of ids) { const box = document.createElement('div'); $('#out').appendChild(box); contentBlock(box, id, false, true); }
-    $('#next').onclick = () => { ONB.set({ ...o, step: 'offer' }); render(); scrollTo(0, 0); };
+    // o Instagram só entra quando os criativos estão prontos
+    const ig = igBeta() || (me.instagram?.account && !me.instagram.account.expired), btn = $('#next');
+    const ready = () => { busy(btn, false); btn.lastChild.textContent = ig ? 'Quero postar no meu Instagram' : 'Quero baixar e postar'; };
+    const check = async () => { if (!document.body.contains(btn)) return;
+      const cs = await Promise.all(ids.map(id => api('/contents/' + id).then(d => d.content).catch(() => null)));
+      if (cs.some(c => c && ['queued', 'in_progress'].includes(c.status))) return setTimeout(check, 6000);
+      ready(); };
+    check();
+    btn.onclick = () => { ONB.set({ ...o, step: ig ? 'instagram' : 'offer' }); render(); scrollTo(0, 0); };
   }
 
 
@@ -482,7 +510,7 @@
   function bindPay(rerender, back) {
     $$('[data-method]').forEach(b => b.onclick = () => { PAY.method = b.dataset.method; rerender(); });
     $$('[data-period]').forEach(b => b.onclick = () => { PAY.period = b.dataset.period; rerender(); });
-    $$('[data-plan]').forEach(b => b.onclick = async () => { busy(b, true); try { const d = await api('/billing/checkout', { method: 'POST', body: { plan: b.dataset.plan, method: PAY.method, period: PAY.period, back } }); if (back === 'start') ONB.set({ ...ONB.get(), step: 'instagram' }); location.href = d.url; } catch (e) { toast(e.message, 5000); busy(b, false); } });
+    $$('[data-plan]').forEach(b => b.onclick = async () => { busy(b, true); try { const d = await api('/billing/checkout', { method: 'POST', body: { plan: b.dataset.plan, method: PAY.method, period: PAY.period, back } }); if (back === 'start') ONB.set({}); location.href = d.url; } catch (e) { toast(e.message, 5000); busy(b, false); } });
   }
 
   async function stepOffer(o) {
@@ -495,7 +523,7 @@
       <p class="micro center"><a href="#" id="free">Continuar no plano grátis</a> <span class="fine">(2 posts por mês, sem reels)</span></p>
       <p class="micro center"><a href="#" id="back">← Voltar para o conteúdo</a></p>`;
     bindPay(() => stepOffer(o), 'start');
-    $('#free').onclick = e => { e.preventDefault(); ONB.set({ ...o, step: 'instagram' }); render(); scrollTo(0, 0); };
+    $('#free').onclick = e => { e.preventDefault(); ONB.set({}); location.hash = '#/home'; };
     $('#back').onclick = e => { e.preventDefault(); ONB.set({ ...o, step: 'result' }); render(); };
   }
 
@@ -509,14 +537,20 @@
     if (acc && !acc.expired) return `<div class="row" style="gap:12px">${acc.picture_url ? `<img src="/api/img?u=${encodeURIComponent(acc.picture_url)}" alt="" style="width:44px;height:44px;border-radius:50%" onerror="this.remove()">` : ''}<p class="lead" style="margin:0">Conectado como <b>@${esc(acc.username || '')}</b>.</p></div>`;
     return `${acc?.expired ? '<p class="hint">A conexão expirou. Conecte de novo.</p>' : ''}<p class="lead">Precisa ser uma conta comercial ou de criador. Você entra pelo próprio Instagram e a Íris só ganha permissão para ver o perfil e publicar.</p><a class="btn btn-primary btn-block" href="/api/instagram/connect?back=${back}">Conectar Instagram</a>`;
   }
-  function stepInstagram(o) {
+  // Logo depois dos criativos prontos: conectar para publicar o que ela acabou de ver. Permissão explicada ao lado do pedido.
+  function stepInstagram(o, r) {
     const done = me.instagram?.account && !me.instagram.account.expired;
-    // conectar só faz sentido onde a Meta já libera a conta; sem isso, a pessoa segue direto para o painel
-    if (!done && !igBeta()) { ONB.set({}); location.hash = '#/home'; return; }
-    main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><span class="eyebrow" style="justify-content:center">Último passo</span><h1>${done ? 'Tudo pronto para publicar.' : 'Conecte seu Instagram.'}</h1><p class="lead">${done ? 'Aprove um conteúdo e publique com um toque, sem baixar nada.' : 'Assim a Íris publica o que você aprovar, direto no seu perfil.'}</p></div>
-      <div class="card">${igCard('start')}</div>
-      <button class="btn ${done ? 'btn-primary' : 'btn-ghost'} btn-block" id="go">${done ? 'Ver meus conteúdos' : 'Agora não'}</button>`;
-    $('#go').onclick = () => { ONB.set({}); location.hash = '#/home'; };
+    if (!done && !igBeta()) { ONB.set({ ...o, step: 'offer' }); return render(); }
+    if (done && r?.q.get('ig') === 'ok') track('instagram');
+    main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><span class="eyebrow" style="justify-content:center">Seus posts estão prontos</span><h1>${done ? 'Instagram conectado.' : 'Agora é postar.'}</h1><p class="lead">${done ? 'O que você aprovar vai para o seu perfil com um toque, sem baixar nada.' : 'Conecte o Instagram da loja e publique o carrossel e o reels direto daqui, sem baixar nem copiar legenda.'}</p></div>
+      <div class="card">${done ? igCard('start') : `<ul class="perm">
+          <li><b>Você entra pelo próprio Instagram.</b> A Íris nunca vê sua senha.</li>
+          <li><b>Nada vai para o ar sem você aprovar.</b> A Íris só publica o post que você mandar.</li>
+          <li><b>Lê seu perfil e o alcance dos posts</b> para mostrar o que está vendendo. Não lê o direct.</li></ul>
+        <p class="fine">Funciona com conta comercial ou de criador. Dá para desconectar quando quiser em Configurações.</p>
+        <a class="btn btn-primary btn-block" href="/api/instagram/connect?back=start">Conectar Instagram</a>`}</div>
+      <button class="btn ${done ? 'btn-primary' : 'btn-ghost'} btn-block" id="go">${done ? 'Continuar' : 'Agora não, vou baixar'}</button>`;
+    $('#go').onclick = () => { ONB.set({ ...o, step: 'offer' }); render(); scrollTo(0, 0); };
   }
 
   /* ---------- home ---------- */
@@ -831,9 +865,9 @@
         ${ready ? `<button class="btn btn-ghost" id="cp">Copiar legenda</button>` : ''}
         ${full ? `<button class="btn btn-ghost btn-sm" id="del">Excluir</button>` : ''}`;
       if ($('#ap', box)) $('#ap', box).onclick = async () => { c = (await api('/contents/' + c.id, { method: 'PATCH', body: { action: approved ? 'unapprove' : 'approve' } })).content; draw(); toast(approved ? 'Voltou para rascunho.' : 'Aprovado. Pode postar.'); };
-      if ($('#dl', box)) $('#dl', box).onclick = () => downloadAll(box, c);
-      if ($('#pub', box)) $('#pub', box).onclick = async () => { const btn = $('#pub', box); busy(btn, true); try { await publishToIg(box, c); c = (await api('/contents/' + c.id)).content; draw(); } catch (e) { toast(e.message, 6000); busy(btn, false); } };
-      if ($('#cp', box)) $('#cp', box).onclick = async () => { const t = (copy.caption || '') + (copy.hashtags ? '\n\n' + copy.hashtags.join(' ') : ''); try { await navigator.clipboard.writeText(t); toast('Legenda copiada.'); } catch { prompt('Copie a legenda:', t); } };
+      if ($('#dl', box)) $('#dl', box).onclick = () => { trackValue(); downloadAll(box, c); };
+      if ($('#pub', box)) $('#pub', box).onclick = async () => { const btn = $('#pub', box); busy(btn, true); try { await publishToIg(box, c); trackValue(); c = (await api('/contents/' + c.id)).content; draw(); } catch (e) { toast(e.message, 6000); busy(btn, false); } };
+      if ($('#cp', box)) $('#cp', box).onclick = async () => { const t = (copy.caption || '') + (copy.hashtags ? '\n\n' + copy.hashtags.join(' ') : ''); trackValue(); try { await navigator.clipboard.writeText(t); toast('Legenda copiada.'); } catch { prompt('Copie a legenda:', t); } };
       if ($('#del', box)) $('#del', box).onclick = async () => { if (!$('#del', box).dataset.sure) { $('#del', box).dataset.sure = '1'; $('#del', box).textContent = 'Confirmar exclusão'; return; } await api('/contents/' + c.id, { method: 'DELETE' }); location.hash = '#/home'; };
       if (c.format === 'reel' && ['queued', 'in_progress'].includes(c.status)) setTimeout(async () => { try { c = (await api('/contents/' + c.id)).content; } catch { } if (!document.body.contains(box)) return; draw(); }, 6000);
     };

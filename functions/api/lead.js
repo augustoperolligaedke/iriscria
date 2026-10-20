@@ -9,10 +9,10 @@ export async function onRequestPost({ request, env }) {
   try { data = await request.json(); } catch { return json({ ok: false, error: 'invalid_json' }, 400); }
   if (data.fax) return json({ ok: true }); // honeypot
 
-  // eventos das landing pages de validação: visita, clique, cadastro. Soma por página e por dia.
+  // eventos por página e por dia: visita e clique (landing), foto, peca, cadastro, instagram e valor (onboarding do app).
   if (data.etapa === 'evento') {
     const lp = String(data.lp || 'site').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30) || 'site';
-    const ev = ['visita', 'clique', 'cadastro'].includes(data.evento) ? data.evento : null;
+    const ev = ['visita', 'clique', 'foto', 'peca', 'cadastro', 'instagram', 'valor'].includes(data.evento) ? data.evento : null;
     if (!ev) return json({ ok: false, error: 'invalid_evento' }, 400);
     if (/bot|crawl|spider|preview|headless/i.test(request.headers.get('user-agent') || '')) return json({ ok: true, ignored: 'bot' });
     if (env.LEADS) {
