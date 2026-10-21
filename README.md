@@ -26,7 +26,7 @@ Abra http://127.0.0.1:4000 (landing) e http://127.0.0.1:4000/app/ (app). Sem `RE
 - Reels: Higgsfield (`HF_API_KEY_ID`/`HF_API_KEY_SECRET`, modelo em `HF_VIDEO_MODEL`). Sem chave: prévia animada no app.
 - Texto: `LLM_API_KEY` + `LLM_BASE_URL` + `LLM_MODEL` (OpenAI por padrão; OpenRouter trocando a base URL).
 - Pagamento com cartão: Stripe Checkout em assinatura que renova sozinha (`STRIPE_*`), webhook em `/api/billing/webhook`.
-- Pagamento com Pix: AbacatePay v2, pré-pago mensal ou anual (`ABACATE_*`). Crie no painel um produto avulso por plano (mais um anual, opcional, com preço de 10 meses) e cadastre o webhook `APP_URL/api/billing/abacatepay?webhookSecret=...` com o evento `checkout.completed`. O app avisa 5 dias antes de vencer. Migração `0003_payments.sql`.
+- Pagamento com Pix: AbacatePay v2, pré-pago mensal ou anual (`ABACATE_*`). `ABACATE_API_KEY=... node scripts/abacatepay-setup.mjs --pages` cria os produtos (um por plano, mensal e anual com preço de 10 meses), registra o webhook `APP_URL/api/billing/abacatepay?webhookSecret=...` (evento `checkout.completed`) e grava os secrets no Pages. Sem pagamento ligado, o botão do plano registra interesse (lead `plano`) e a pessoa segue no grátis. O app avisa 5 dias antes de vencer. Migração `0003_payments.sql`.
 - WhatsApp: Tyxter (`TYXTER_*`), webhook em `/api/wa/webhook`. No app, Conta → Gerar código → enviar "iris CÓDIGO" ao número da iris. Depois, foto com nome e preço na legenda vira produto.
 
 ## Banco: Supabase (Postgres) via Hyperdrive
