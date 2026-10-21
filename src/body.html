@@ -554,7 +554,7 @@
 
   /* Link ou @ → registra e vai para a página de validação */
   var DEMO=!!document.querySelector('[data-demo-flag]');
-function ev(e){if(DEMO)return;try{var b=JSON.stringify({etapa:'evento',evento:e,lp:'site'});navigator.sendBeacon?navigator.sendBeacon('/api/lead',new Blob([b],{type:'application/json'})):fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json'},body:b,keepalive:true})}catch(x){}}
+function ev(e){if(DEMO)return;try{window.Holdy&&Holdy.track(e,{lp:'site'})}catch(x){}try{var b=JSON.stringify({etapa:'evento',evento:e,lp:'site'});navigator.sendBeacon?navigator.sendBeacon('/api/lead',new Blob([b],{type:'application/json'})):fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json'},body:b,keepalive:true})}catch(x){}}
 try{if(!sessionStorage.getItem('iris-lp-v-site')){sessionStorage.setItem('iris-lp-v-site','1');ev('visita')}}catch(x){}
   function wire(formId,inputId,hintId){
     var form=$('#'+formId), inp=$('#'+inputId), hint=$('#'+hintId), btn=$('button[type="submit"]',form);

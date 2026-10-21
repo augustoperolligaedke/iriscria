@@ -1,7 +1,7 @@
 # Copie para .dev.vars (local) ou configure como secrets no Cloudflare Pages.
 # LLM (OpenAI ou compatível, ex.: OpenRouter)
 LLM_API_KEY=
-# Higgsfield (console.higgsfield.ai)
+# Higgsfield (console.higgsfield.ai): par id/secret, ou HIGGSFIELD_API_KEY única no lugar dos dois
 HF_API_KEY_ID=
 HF_API_KEY_SECRET=
 # E-mail do código de acesso (Resend). Sem chave, o código aparece na resposta em dev.

@@ -72,7 +72,7 @@ const SPRITE = `<svg width="0" height="0" style="position:absolute" aria-hidden=
 const script = lp => `<script>
 (function(){
 var LP=${JSON.stringify(lp)};
-function ev(e){try{var b=JSON.stringify({etapa:'evento',evento:e,lp:LP});if(navigator.sendBeacon){navigator.sendBeacon('/api/lead',new Blob([b],{type:'application/json'}))}else{fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json'},body:b,keepalive:true})}}catch(x){}}
+function ev(e){try{window.Holdy&&Holdy.track(e,{lp:LP})}catch(x){}try{var b=JSON.stringify({etapa:'evento',evento:e,lp:LP});if(navigator.sendBeacon){navigator.sendBeacon('/api/lead',new Blob([b],{type:'application/json'}))}else{fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json'},body:b,keepalive:true})}}catch(x){}}
 try{if(!sessionStorage.getItem('iris-lp-v-'+LP)){sessionStorage.setItem('iris-lp-v-'+LP,'1');ev('visita')}}catch(x){ev('visita')}
 function wire(id){var f=document.getElementById(id+'-form'),i=document.getElementById(id+'-loja'),h=document.getElementById(id+'-hint'),b=f.querySelector('button');
 f.addEventListener('submit',function(e){e.preventDefault();var v=i.value.trim().replace(/^https?:\\/\\//,'').replace(/^www\\./,'').replace(/\\/$/,'');

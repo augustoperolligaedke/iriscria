@@ -551,6 +551,9 @@ section[id],#top{scroll-margin-top:96px}
 @keyframes ripple{0%,20%{transform:scale(1);opacity:.8}60%,100%{transform:scale(2.2);opacity:0}}
 /* hero: tiles alternam de segmento */
 </style>
+<!-- Holdy: análise de produto (chave pública do SDK) -->
+<script src="https://holdy.chat/sdk/v1/holdy.js" crossorigin="anonymous"></script>
+<script>try{window.Holdy&&Holdy.init({apiKey:'hol_live_986EYZQ2FZE24WAFMF2NP6CWXNDZQEZTAVZQ',autoCapture:true})}catch(e){}</script>
 
 <link rel="canonical" href="https://iriscria.pages.dev/para/semijoias">
 <style>
@@ -622,7 +625,7 @@ section[id],#top{scroll-margin-top:96px}
 <script>
 (function(){
 var LP="semijoias";
-function ev(e){try{var b=JSON.stringify({etapa:'evento',evento:e,lp:LP});if(navigator.sendBeacon){navigator.sendBeacon('/api/lead',new Blob([b],{type:'application/json'}))}else{fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json'},body:b,keepalive:true})}}catch(x){}}
+function ev(e){try{window.Holdy&&Holdy.track(e,{lp:LP})}catch(x){}try{var b=JSON.stringify({etapa:'evento',evento:e,lp:LP});if(navigator.sendBeacon){navigator.sendBeacon('/api/lead',new Blob([b],{type:'application/json'}))}else{fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json'},body:b,keepalive:true})}}catch(x){}}
 try{if(!sessionStorage.getItem('iris-lp-v-'+LP)){sessionStorage.setItem('iris-lp-v-'+LP,'1');ev('visita')}}catch(x){ev('visita')}
 function wire(id){var f=document.getElementById(id+'-form'),i=document.getElementById(id+'-loja'),h=document.getElementById(id+'-hint'),b=f.querySelector('button');
 f.addEventListener('submit',function(e){e.preventDefault();var v=i.value.trim().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/$/,'');

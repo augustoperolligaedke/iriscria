@@ -8,7 +8,7 @@ const NS = '2421c0daf94145b59ff857b0ede7c9a0';
 // WRANGLER=wrangler@4.151.2 para ler o KV local gravado pelo servidor de desenvolvimento novo
 const wr = args => execFileSync('npx', ['-y', process.env.WRANGLER || 'wrangler', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
 const keys = JSON.parse(wr(['kv', 'key', 'list', '--namespace-id', NS, '--prefix', 'stat:', where])).map(k => k.name).filter(k => k.split(':')[3] >= desde);
-const EV = ['visita', 'clique', 'foto', 'peca', 'cadastro', 'instagram', 'valor'];
+const EV = ['visita', 'clique', 'foto', 'peca', 'cadastro', 'instagram', 'valor', 'plano'];
 const t = {};
 for (const k of keys) {
   const [, lp, ev] = k.split(':');

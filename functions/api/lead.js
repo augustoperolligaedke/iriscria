@@ -12,7 +12,7 @@ export async function onRequestPost({ request, env }) {
   // eventos por página e por dia: visita e clique (landing), foto, peca, cadastro, instagram e valor (onboarding do app).
   if (data.etapa === 'evento') {
     const lp = String(data.lp || 'site').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30) || 'site';
-    const ev = ['visita', 'clique', 'foto', 'peca', 'cadastro', 'instagram', 'valor'].includes(data.evento) ? data.evento : null;
+    const ev = ['visita', 'clique', 'foto', 'peca', 'cadastro', 'instagram', 'valor', 'plano'].includes(data.evento) ? data.evento : null;
     if (!ev) return json({ ok: false, error: 'invalid_evento' }, 400);
     if (/bot|crawl|spider|preview|headless/i.test(request.headers.get('user-agent') || '')) return json({ ok: true, ignored: 'bot' });
     if (env.LEADS) {
@@ -25,9 +25,11 @@ export async function onRequestPost({ request, env }) {
 
   const loja = String(data.loja || '').trim().replace(/^https?:\/\//, '').slice(0, 200);
   const contato = String(data.contato || '').trim().slice(0, 120);
-  const etapa = data.etapa === 'contato' ? 'contato' : 'loja';
+  const etapa = data.etapa === 'contato' ? 'contato' : data.etapa === 'plano' ? 'plano' : 'loja';
+  const plano = ['basico', 'pro', 'loja'].includes(data.plano) ? data.plano : '';
 
   if (etapa === 'loja' && loja.length < 3) return json({ ok: false, error: 'invalid_loja' }, 400);
+  if (etapa === 'plano' && !plano) return json({ ok: false, error: 'invalid_plano' }, 400);
   if (etapa === 'contato') {
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contato);
     const isPhone = contato.replace(/\D/g, '').length >= 10;
@@ -38,6 +40,8 @@ export async function onRequestPost({ request, env }) {
     etapa,
     loja,
     contato,
+    plano,
+    user_id: String(data.user_id || '').slice(0, 40),
     origem: String(data.origem || '').slice(0, 300),
     lp: String(data.lp || 'site').slice(0, 30),
     ua: request.headers.get('user-agent') || '',
@@ -46,7 +50,7 @@ export async function onRequestPost({ request, env }) {
   };
 
   if (env.LEADS) {
-    await env.LEADS.put(`lead:${lead.ts}:${etapa}:${(loja || contato).toLowerCase()}`, JSON.stringify(lead));
+    await env.LEADS.put(`lead:${lead.ts}:${etapa}:${(loja || contato || plano).toLowerCase()}`, JSON.stringify(lead));
   } else {
     console.log('LEAD (sem KV vinculado)', JSON.stringify(lead));
   }

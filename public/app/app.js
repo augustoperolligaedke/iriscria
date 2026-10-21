@@ -18,7 +18,9 @@
   let toastT; function toast(msg, ms = 3200) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, ms); }
   const ss = { get: k => { try { return sessionStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch { } }, del: k => { try { sessionStorage.removeItem(k); } catch { } } };
   const busy = (btn, on) => { if (btn) btn.setAttribute('aria-busy', on ? 'true' : 'false'); };
-  async function loadMe() { me = (await api('/me')); return me; }
+  async function loadMe() { me = (await api('/me')); holdy(); return me; }
+  // Holdy (análise de produto): quem é a pessoa e qual loja; sem SDK ou bloqueado, não faz nada
+  function holdy() { try { const H = window.Holdy; if (!H || !me?.user) return; H.identify(me.user.id, { email: me.user.email || undefined, plan: me.user.plan }); H.group(me.user.id, { name: me.brand?.name || me.user.email || me.user.id, plan: me.user.plan, instagram: me.brand?.instagram || undefined, lp: ss.get('iris-lp') || undefined }); } catch { } }
   const fmtDate = s => new Date(s).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 
   /* ---------- roteador ---------- */
@@ -224,7 +226,8 @@
   }
   const pause = ms => new Promise(r => setTimeout(r, ms));
   // funil do onboarding por página de origem: onde a jornada para (foto → peça → cadastro → instagram → valor)
-  function track(evento) {
+  function track(evento, props) {
+    try { window.Holdy?.track(evento, { lp: ss.get('iris-lp') || 'direto', ...(props || {}) }); } catch { }
     try { const b = JSON.stringify({ etapa: 'evento', evento, lp: ss.get('iris-lp') || 'direto' }); navigator.sendBeacon ? navigator.sendBeacon('/api/lead', new Blob([b], { type: 'application/json' })) : fetch('/api/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, body: b }); } catch { }
   }
   // valor = a pessoa aproveitou o conteúdo (baixou, copiou a legenda ou publicou), não só gerou
@@ -411,7 +414,11 @@
     if ($('#sac')) $('#sac').onclick = () => { ONB.set({ ...o, step: 'product' }); location.href = '/api/meta/connect?back=start'; };
   }
   const GICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.7V6.6h-4a12 12 0 0 0 0 10.8z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.3.6 4.5 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"/></svg>';
-  const googleBtn = back => me?.google ? `<a class="btn btn-google btn-block" href="/api/auth/google?back=${back}">${GICON}Continuar com Google</a><p class="or"><span>ou com seu e-mail</span></p>` : '';
+  const emailOn = () => me?.email_login !== false;
+  const googleBtn = back => me?.google ? `<a class="btn btn-google btn-block" href="/api/auth/google?back=${back}">${GICON}Continuar com Google</a>${emailOn() ? '<p class="or"><span>ou com seu e-mail</span></p>' : ''}` : '';
+  // campo de e-mail só quando o envio do código está ligado; sem Google nem e-mail, explica em vez de deixar um botão que não funciona
+  const emailFields = (value = '') => emailOn() ? `<div class="field"><label for="email">E-mail</label><input class="input" id="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@sualoja.com.br" value="${esc(value)}"></div><p class="hint" id="h"></p><button class="btn btn-primary btn-block" type="submit"><span class="spin"></span>Receber código</button>` : me?.google ? '<p class="hint" id="h"></p>' : '<p class="hint" id="h">O login ainda não está liberado neste ambiente. Tente de novo mais tarde.</p>';
+  const loginLead = () => emailOn() ? (me?.google ? 'Entre com o Google em um toque, ou receba um código no e-mail.' : 'Receba um código de 6 dígitos no e-mail.') : 'Entre com o Google em um toque.';
   function googleToast(v) {
     const m = { cancelado: 'Login com Google cancelado.', invalido: 'O login expirou. Tente de novo.', erro: 'Não consegui entrar com o Google. Tente de novo ou use o e-mail.', sem_email: 'Essa conta Google não tem e-mail verificado.', off: 'Login com Google ainda não está ativo.' }[v];
     if (m) toast(m, 4500);
@@ -420,9 +427,8 @@
   function stepAuth(o) {
     if (me.user) { ONB.set({ ...o, step: 'generate' }); return render(); }
     const pf = !!o.meta?.photo_first;
-    main.innerHTML = `${pf ? stepsBar(3, 3) : stepsBar(4)}<div class="stack"><span class="eyebrow">Quase lá</span><h1>Onde eu guardo seus posts?</h1><p class="lead">Entre com o Google em um toque, ou receba um código no e-mail. Sem senha, sem cartão. Logo depois eu crio.</p></div>
-      <form class="card" id="f">${googleBtn('start')}<div class="field"><label for="email">E-mail</label><input class="input" id="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@sualoja.com.br" value="${esc(o.email || '')}"></div><p class="hint" id="h"></p>
-      <button class="btn btn-primary btn-block" type="submit"><span class="spin"></span>Receber código</button><button class="btn btn-ghost btn-block" type="button" id="back">Voltar</button></form>`;
+    main.innerHTML = `${pf ? stepsBar(3, 3) : stepsBar(4)}<div class="stack"><span class="eyebrow">Quase lá</span><h1>Onde eu guardo seus posts?</h1><p class="lead">${loginLead()} Sem senha, sem cartão. Logo depois eu crio.</p></div>
+      <form class="card" id="f">${googleBtn('start')}${emailFields(o.email || '')}<button class="btn btn-ghost btn-block" type="button" id="back">Voltar</button></form>`;
     $('#f').onsubmit = async e => { e.preventDefault(); const email = $('#email').value.trim(); const btn = $('#f button[type=submit]'); busy(btn, true);
       try { const d = await api('/auth/request', { method: 'POST', body: { email } }); ONB.set({ ...o, email }); codeForm(email, d.dev_code, async () => { await loadMe(); ONB.set({ ...ONB.get(), step: 'generate' }); render(); }); } catch (err) { $('#h').textContent = err.message; } finally { busy(btn, false); } };
     $('#back').onclick = () => { ONB.set({ ...o, step: pf ? 'details' : 'product' }); render(); };
@@ -502,15 +508,21 @@
   function payBar() {
     const { pixOn, cardOn, anual } = payState();
     const seg = (k, v, l) => `<button class="chip" type="button" data-${k}="${v}" aria-pressed="${PAY[k] === v}">${l}</button>`;
-    return `<div class="stack" style="gap:8px;align-items:center">${pixOn && cardOn || (!pixOn && !cardOn) ? `<div class="chips" style="justify-content:center">${seg('method', 'pix', 'Pix')}${seg('method', 'card', 'Cartão')}</div>` : ''}
+    if (!pixOn && !cardOn) return `<p class="fine center" style="margin:0">O pagamento está sendo liberado. Escolha o plano e a Íris te avisa assim que abrir, sem cobrar nada agora.</p>`;
+    return `<div class="stack" style="gap:8px;align-items:center">${pixOn && cardOn ? `<div class="chips" style="justify-content:center">${seg('method', 'pix', 'Pix')}${seg('method', 'card', 'Cartão')}</div>` : ''}
       ${PAY.method === 'pix' && anual ? `<div class="chips" style="justify-content:center">${seg('period', 'mensal', 'Mensal')}${seg('period', 'anual', 'Anual <small>2 meses grátis</small>')}</div>` : ''}
       <p class="fine center" style="margin:0">${PAY.method === 'pix' ? (PAY.period === 'anual' ? 'Um Pix por ano. Sem renovação automática.' : 'Um Pix por mês. A Íris avisa antes de vencer, sem cobrança automática.') : 'Cartão renova sozinho todo mês. Cancele quando quiser.'}</p></div>`;
   }
+  const planCta = () => { const { pixOn, cardOn } = payState(); return pixOn || cardOn ? 'Assinar' : 'Quero o'; };
   const priceLabel = p => PAY.method === 'pix' && PAY.period === 'anual' ? `R$ ${p.price * 10}<small>/ano</small>` : `R$ ${p.price}<small>/mês</small>`;
   function bindPay(rerender, back) {
     $$('[data-method]').forEach(b => b.onclick = () => { PAY.method = b.dataset.method; rerender(); });
     $$('[data-period]').forEach(b => b.onclick = () => { PAY.period = b.dataset.period; rerender(); });
-    $$('[data-plan]').forEach(b => b.onclick = async () => { busy(b, true); try { const d = await api('/billing/checkout', { method: 'POST', body: { plan: b.dataset.plan, method: PAY.method, period: PAY.period, back } }); if (back === 'start') ONB.set({}); location.href = d.url; } catch (e) { toast(e.message, 5000); busy(b, false); } });
+    const { pixOn, cardOn } = payState();
+    $$('[data-plan]').forEach(b => b.onclick = async () => { busy(b, true);
+      // pagamento ainda desligado: guarda o interesse (lead + evento) e deixa a pessoa seguir no grátis
+      if (!pixOn && !cardOn) { try { await api('/lead', { method: 'POST', body: { etapa: 'plano', plano: b.dataset.plan, contato: me.user?.email || '', user_id: me.user?.id || '', lp: ss.get('iris-lp') || 'direto', origem: location.href } }); } catch { } track('plano', { plano: b.dataset.plan }); toast(`Anotado: plano ${me.plans[b.dataset.plan]?.name || ''}. A Íris te avisa quando o pagamento abrir. Até lá, siga no grátis.`, 6000); if (back === 'start') ONB.set({}); location.hash = '#/home'; return; }
+      try { const d = await api('/billing/checkout', { method: 'POST', body: { plan: b.dataset.plan, method: PAY.method, period: PAY.period, back } }); if (back === 'start') ONB.set({}); location.href = d.url; } catch (e) { toast(e.message, 5000); busy(b, false); } });
   }
 
   async function stepOffer(o) {
@@ -518,7 +530,7 @@
     const plans = me.plans;
     main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><h1>Conteúdo assim toda semana.</h1><p class="lead">Escolha um plano para baixar o que você acabou de ver e continuar criando sem pensar em post.</p></div>
       ${payBar()}
-      <div class="plans">${['pro', 'basico', 'loja'].map(k => { const p = plans[k]; return `<div class="plan ${k === 'pro' ? 'on' : ''}">${k === 'pro' ? '<span class="tag wait">Mais escolhido</span>' : ''}<h3>${esc(p.name)}</h3><div class="price">${priceLabel(p)}</div><ul>${p.perks.map(x => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn ${k === 'pro' ? 'btn-primary' : 'btn-ghost'} btn-block" data-plan="${k}"><span class="spin"></span>Assinar ${esc(p.name)}</button></div>`; }).join('')}</div>
+      <div class="plans">${['pro', 'basico', 'loja'].map(k => { const p = plans[k]; return `<div class="plan ${k === 'pro' ? 'on' : ''}">${k === 'pro' ? '<span class="tag wait">Mais escolhido</span>' : ''}<h3>${esc(p.name)}</h3><div class="price">${priceLabel(p)}</div><ul>${p.perks.map(x => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn ${k === 'pro' ? 'btn-primary' : 'btn-ghost'} btn-block" data-plan="${k}"><span class="spin"></span>${planCta()} ${esc(p.name)}</button></div>`; }).join('')}</div>
       <p class="fine center">Sem fidelidade. Pagamento seguro.</p>
       <p class="micro center"><a href="#" id="free">Continuar no plano grátis</a> <span class="fine">(2 posts por mês, sem reels)</span></p>
       <p class="micro center"><a href="#" id="back">← Voltar para o conteúdo</a></p>`;
@@ -1002,7 +1014,7 @@
       <nav class="subnav"><a href="#/conta">Marca e integrações</a><a href="#/plano" aria-current="page">Plano e pagamento</a></nav>
       ${me.billing?.until && cur !== 'free' ? `<p class="micro">Seu plano vale até ${new Date(me.billing.until).toLocaleDateString('pt-BR')}${me.billing.source === 'pix' ? ', pago com Pix. Renove antes para não perder o ritmo.' : '.'}</p>` : ''}
       ${payBar()}
-      <div class="plans">${Object.entries(plans).map(([k, p]) => `<div class="plan ${k === cur ? 'on' : ''}"><h3>${esc(p.name)}</h3><div class="price">${p.price ? priceLabel(p) : 'R$ 0<small>/mês</small>'}</div><ul>${p.perks.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${k === cur ? '<span class="tag ok">seu plano</span>' : k === 'free' ? '' : `<button class="btn btn-primary" data-plan="${k}"><span class="spin"></span>Assinar ${esc(p.name)}</button>`}${k === cur && me.billing?.source === 'pix' ? `<button class="btn btn-ghost" data-plan="${k}"><span class="spin"></span>Renovar com Pix</button>` : ''}</div>`).join('')}</div>
+      <div class="plans">${Object.entries(plans).map(([k, p]) => `<div class="plan ${k === cur ? 'on' : ''}"><h3>${esc(p.name)}</h3><div class="price">${p.price ? priceLabel(p) : 'R$ 0<small>/mês</small>'}</div><ul>${p.perks.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${k === cur ? '<span class="tag ok">seu plano</span>' : k === 'free' ? '' : `<button class="btn btn-primary" data-plan="${k}"><span class="spin"></span>${planCta()} ${esc(p.name)}</button>`}${k === cur && me.billing?.source === 'pix' ? `<button class="btn btn-ghost" data-plan="${k}"><span class="spin"></span>Renovar com Pix</button>` : ''}</div>`).join('')}</div>
       <p class="fine">Posts: feed ou carrossel. Reels: vídeo de até 5 s gerado a partir da foto, com capa e legenda. Limites por mês = semana × 4.</p>`;
     bindPay(viewPlan, 'plano');
   }
@@ -1038,8 +1050,8 @@
   function viewLogin(r) {
     if (r?.q?.get('google')) googleToast(r.q.get('google'));
     if (me.user) { location.hash = me.brand ? '#/home' : '#/start'; return; }
-    main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><h1>Entrar na Íris</h1><p class="lead">Entre com o Google ou receba um código de 6 dígitos no e-mail.</p></div>
-      <form class="card" id="f">${igBeta() ? '<a class="btn btn-ig btn-block" id="ig-login" href="/api/instagram/connect?back=start">Entrar com Instagram</a>' : ''}${googleBtn('login')}<div class="field"><label for="email">E-mail</label><input class="input" id="email" type="email" inputmode="email" autocomplete="email"></div><p class="hint" id="h"></p><button class="btn btn-primary btn-block" type="submit"><span class="spin"></span>Receber código</button></form>`;
+    main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><h1>Entrar na Íris</h1><p class="lead">${loginLead()}</p></div>
+      <form class="card" id="f">${igBeta() ? '<a class="btn btn-ig btn-block" id="ig-login" href="/api/instagram/connect?back=start">Entrar com Instagram</a>' : ''}${googleBtn('login')}${emailFields()}</form>`;
     if ($('#ig-login')) $('#ig-login').onclick = () => ONB.set({ step: 'ig' });
     $('#f').onsubmit = async e => { e.preventDefault(); const email = $('#email').value.trim(); const btn = $('#f button[type=submit]'); busy(btn, true); try { const d = await api('/auth/request', { method: 'POST', body: { email } }); codeForm(email, d.dev_code, async () => { await loadMe(); location.hash = me.brand ? '#/home' : '#/start'; render(); }); } catch (err) { $('#h').textContent = err.message; busy(btn, false); } };
   }
