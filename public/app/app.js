@@ -6,6 +6,66 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const FONTS = ['Manrope', 'Poppins', 'Montserrat', 'DM Sans', 'Nunito', 'Playfair Display', 'DM Serif Display', 'Lora', 'Cormorant Garamond', 'Bebas Neue'];
   const FORMAT = { feed: 'Post no feed', carousel: 'Carrossel', reel: 'Reels' };
+
+  /* ---------- ícones (Lucide, ISC) e logos reais ---------- */
+  const I = {
+    home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+    grid: '<rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/>',
+    plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+    settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+    image: '<rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+    images: '<path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/>',
+    camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+    globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    send: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+    download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+    copy: '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+    pencil: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>',
+    trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+    back: '<path d="m15 18-6-6 6-6"/>',
+    arrow: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    refresh: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+    logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+    lock: '<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    sparkles: '<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>',
+    calendar: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+    reel: '<path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
+    carousel: '<path d="M2 3v18"/><rect width="12" height="18" x="6" y="3" rx="2"/><path d="M22 3v18"/>',
+    store: '<path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/>',
+    chat: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+    zap: '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+    shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    eye: '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>',
+    bookmark: '<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>',
+    heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+    user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+    external: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+    x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    card: '<rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>',
+    play: '<path d="m6 3 14 9-14 9z"/>',
+    trend: '<path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>',
+    tag: '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>',
+    wand: '<path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8 19 13"/><path d="M15 9h.01"/><path d="M17.8 6.2 19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/>',
+    phone: '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+    share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98"/><path d="m15.41 6.51-6.82 3.98"/>',
+    alert: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+    palette: '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>',
+    instagram: '<rect width="20" height="20" x="2" y="2" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/>',
+  };
+  const ic = (n, cls = '') => `<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" aria-hidden="true">${I[n] || ''}</svg>`;
+  // logos oficiais (traçados dos ícones públicos das marcas; os mesmos do site)
+  const LOGO = {
+    instagram: '<path fill="currentColor" d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/>',
+    whatsapp: '<path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>',
+    pix: '<path fill="currentColor" d="M15.9 17.2c-.8 0-1.6-.3-2.2-.9l-3.1-3.1a.6.6 0 0 0-.8 0l-3.1 3.1c-.6.6-1.4.9-2.2.9h-.6l3.9 3.9a3.2 3.2 0 0 0 4.5 0l3.9-3.9zM4.5 6.8c.8 0 1.6.3 2.2.9l3.1 3.1c.2.2.6.2.8 0l3.1-3.1c.6-.6 1.4-.9 2.2-.9h.6L12.6 2.9a3.2 3.2 0 0 0-4.5 0L4 6.8zm16.6 2.9-2.4-2.4h-1.3c-.5 0-1.1.2-1.5.6l-3.1 3.1c-.3.3-.7.4-1 .4s-.7-.1-1-.4L7.7 7.9c-.4-.4-.9-.6-1.5-.6H4.9L2.6 9.7a3.2 3.2 0 0 0 0 4.5l2.3 2.3h1.3c.5 0 1.1-.2 1.5-.6l3.1-3.1c.5-.5 1.5-.5 2 0l3.1 3.1c.4.4.9.6 1.5.6h1.3l2.4-2.4a3.2 3.2 0 0 0 0-4.4z"/>',
+    google: '<path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5c-.3 1.5-1.1 2.7-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.7-4.9H1.4v3.1C3.4 21.4 7.4 24 12 24z"/><path fill="#FBBC05" d="M5.3 14.4c-.2-.7-.4-1.5-.4-2.4s.1-1.6.4-2.4V6.5H1.4C.5 8.2 0 10 0 12s.5 3.8 1.4 5.5l3.9-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C18 1.2 15.2 0 12 0 7.4 0 3.4 2.6 1.4 6.5l3.9 3.1c1-2.8 3.6-4.8 6.7-4.8z"/>',
+  };
+  const logo = (n, cls = '') => `<svg class="lg${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" aria-hidden="true">${LOGO[n]}</svg>`;
   let me = null;
 
   /* ---------- infra ---------- */
@@ -58,7 +118,8 @@
 
   /* ---------- onboarding ---------- */
   const ONB = { get: () => { try { return JSON.parse(ss.get('iris-onb') || '{}'); } catch { return {}; } }, set: o => ss.set('iris-onb', JSON.stringify(o)) };
-  function stepsBar(n, total = 4) { return `<div class="steps">${Array.from({ length: total }, (_, i) => i + 1).map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</div>`; }
+  const STEP_LABELS = { 3: ['Foto', 'Peça', 'Conta'], 4: ['Site', 'Marca', 'Produto', 'Conta'] };
+  function stepsBar(n, total = 4) { const L = STEP_LABELS[total] || []; return `<ol class="steps" aria-label="Etapa ${n} de ${total}">${Array.from({ length: total }, (_, i) => i + 1).map(i => `<li class="${i < n ? 'done' : i === n ? 'on' : ''}"><i></i><span>${L[i - 1] || ''}</span></li>`).join('')}</ol>`; }
 
   async function viewStart(r) {
     const o = ONB.get();
@@ -91,25 +152,27 @@
     if (step === 'instagram') return stepInstagram(o, r);
   }
   const igBeta = () => { try { return !!(me?.instagram?.enabled && (me.instagram.signup || localStorage.getItem('iris-beta-ig'))); } catch { return false; } };
-  const OPI = {
-    galeria: '<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>',
-    foto: '<rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/>',
-    site: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9s1.3-6.3 3.8-9z"/>',
-  };
   // Padrões da loja pequena de moda feminina em que a dona vende, atende e posta: ela ajusta depois em Configurações.
   const FASHION = { tone: 'Próximo, animado e direto, como a dona da loja falando com a cliente. Fala de caimento, combinação e ocasião de uso.', icp: 'Mulheres de 20 a 45 anos que seguem a loja no Instagram e compram a novidade quando veem a peça no look.', occasions: 'Trabalho, fim de semana, eventos e viagens' };
   const shootBtns = () => `<div class="shoot">
-      <label class="shoot-main"><input class="sr" type="file" accept="image/*" data-shot><svg viewBox="0 0 24 24" aria-hidden="true">${OPI.galeria}</svg><b>Escolher da galeria</b><small>A foto da novidade que você já tirou</small></label>
-      <label class="shoot-cam"><input class="sr" type="file" accept="image/*" capture="environment" data-shot><svg viewBox="0 0 24 24" aria-hidden="true">${OPI.foto}</svg><b>Tirar foto</b></label></div>`;
+      <label class="shoot-main"><input class="sr" type="file" accept="image/*" data-shot>${ic('images')}<b>Escolher da galeria</b><small>A foto da novidade que você já tirou</small></label>
+      <label class="shoot-cam"><input class="sr" type="file" accept="image/*" capture="environment" data-shot>${ic('camera')}<b>Tirar foto</b></label></div>`;
+  // como funciona + o que a pessoa não precisa fazer: cria confiança antes do primeiro toque
+  const howStrip = (site = false) => `<ol class="how">
+      <li>${ic(site ? 'globe' : 'camera')}<b>${site ? 'Cole o site' : 'Uma foto'}</b>${site ? 'da sua loja' : 'da peça'}</li>
+      <li>${ic('tag')}<b>Nome e preço</b>só o que vai no post</li>
+      <li>${ic('sparkles')}<b>Carrossel e reels</b>prontos para postar</li></ol>
+    <p class="trust"><span>${ic('clock')}Leva 1 minuto</span><span>${ic('lock')}Sem senha</span><span>${ic('card')}Sem cartão</span></p>`;
   const isDesktop = () => matchMedia('(hover:hover) and (pointer:fine)').matches;
   // Entrada principal: uma foto do celular. O site é a alternativa para loja com catálogo; o Instagram vem depois do primeiro conteúdo.
   // No computador a entrada é só pelo site: a foto da novidade está no celular.
   function stepStore(o) {
     if (isDesktop()) return stepStoreDesktop(o);
-    main.innerHTML = `<img class="mark" src="/assets/iris-mark.png" alt="">
+    main.innerHTML = `<div class="hello"><img class="mark" src="/assets/iris-mark.png" alt=""><p class="bubble">Oi, eu sou a Íris. Me mostra uma peça nova que eu crio o post da sua loja.</p></div>
       <div class="stack center"><h1>Mostre uma peça nova.</h1><p class="lead">Uma foto do celular vira carrossel e reels com a cara da sua loja. No cabide, no manequim ou vestida.</p></div>
       ${shootBtns()}
-      <button class="site-alt" type="button" id="site-open"><span class="oi"><svg viewBox="0 0 24 24">${OPI.site}</svg></span><span><b>Tenho site com catálogo</b><small>Puxo logo, cores e produtos com preço</small></span></button>
+      <button class="site-alt" type="button" id="site-open"><span class="oi">${ic('globe')}</span><span><b>Tenho site com catálogo</b><small>Puxo logo, cores e produtos com preço</small></span></button>
+      ${howStrip()}
       <form class="card" id="f" hidden><div class="field"><label for="site">Site da loja</label><input class="input" id="site" placeholder="sualoja.com.br" inputmode="url" autocapitalize="none" value="${esc(/\./.test(o.store || '') ? o.store : '')}"></div>
         <p class="hint" id="hs"></p><button class="btn btn-primary btn-block" type="submit">Ler meu site</button></form>
       ${me.user ? '' : '<p class="micro center">Já tem conta? <a href="#/login">Entrar</a></p>'}`;
@@ -120,11 +183,12 @@
     $('#f').onsubmit = e => { e.preventDefault(); const v = $('#site').value.trim(); if (!/\.[a-z]{2,}/i.test(v)) { $('#hs').textContent = 'Cole o endereço do site, como sualoja.com.br.'; return; } ONB.set({ ...o, store: v, step: 'analyze' }); render(); };
   }
   function stepStoreDesktop(o) {
-    main.innerHTML = `<img class="mark" src="/assets/iris-mark.png" alt="">
+    main.innerHTML = `<div class="hello"><img class="mark" src="/assets/iris-mark.png" alt=""><p class="bubble">Oi, eu sou a Íris. Me passa o site da loja que eu leio a marca e crio o primeiro post.</p></div>
       <div class="stack center"><h1>Cole o site da sua loja.</h1><p class="lead">Leio logo, cores, fonte e o catálogo com preços, e crio seu primeiro carrossel e reels.</p></div>
       <form class="card" id="f"><div class="field"><label for="site">Site da loja</label><input class="input" id="site" placeholder="sualoja.com.br" inputmode="url" autocapitalize="none" value="${esc(/\./.test(o.store || '') ? o.store : '')}"></div>
-        <p class="hint" id="hs"></p><button class="btn btn-primary btn-block" type="submit">Ler meu site</button></form>
-      <p class="micro center">Não tem site? Abra <b>${esc(location.host)}/app</b> no celular e comece por uma foto da galeria.</p>
+        <p class="hint" id="hs"></p><button class="btn btn-primary btn-block" type="submit">${ic('sparkles')}Ler meu site</button></form>
+      ${howStrip(true)}
+      <p class="micro center">${ic('phone', 'sm')} Não tem site? Abra <b>${esc(location.host)}/app</b> no celular e comece por uma foto da galeria.</p>
       ${me.user ? '' : '<p class="micro center">Já tem conta? <a href="#/login">Entrar</a></p>'}`;
     $('#site').focus();
     $('#f').onsubmit = e => { e.preventDefault(); const v = $('#site').value.trim(); if (!/\.[a-z]{2,}/i.test(v)) { $('#hs').textContent = 'Cole o endereço do site, como sualoja.com.br.'; return; } ONB.set({ ...o, store: v, step: 'analyze' }); render(); };
@@ -147,20 +211,22 @@
   function stepDetails(o) {
     if (!o.file_data) { ONB.set({ ...o, step: 'store' }); return render(); }
     const b = o.brand || {}, c = b.colors || {}, st = b.strategy || {}, p = o.product || {};
-    const chans = [['whatsapp', 'WhatsApp'], ['direct', 'Direct'], ['loja', 'Loja física'], ['site', 'Site']];
+    const chans = [['whatsapp', 'WhatsApp', logo('whatsapp', 'c-wa')], ['direct', 'Direct', logo('instagram', 'c-ig')], ['loja', 'Loja física', ic('store')], ['site', 'Site', ic('globe')]];
     main.innerHTML = `${stepsBar(2, 3)}<div class="stack"><span class="eyebrow">Sua novidade</span><h1>Agora me conta da peça.</h1><p class="lead">Só o que vai no post. O resto eu deixo pronto.</p></div>
       <form class="card" id="f">
         <div class="piece"><label class="piece-img" title="Trocar foto"><input class="sr" type="file" accept="image/*" id="swap"><img src="${o.file_data}" alt="Foto da peça"><small>Trocar</small></label>
           <div class="stack" style="gap:8px"><span class="lbl">Cores da marca</span><div class="row sw-mini">${[['primary', 'Principal'], ['secondary', 'Fundo'], ['accent', 'Destaque']].map(([k, l]) => `<label class="swatch"><input type="color" id="c-${k}" value="${esc(c[k] || '#1F140D')}" aria-label="Cor ${l.toLowerCase()}"></label>`).join('')}</div>
           <p class="fine">${o.meta?.colors_from ? 'Tiradas da foto. Toque para trocar.' : 'Toque para escolher.'}</p></div></div>
+        <div class="sect"><span class="sect-t">${ic('tag')}A peça</span>
         <div class="field"><label for="p-name">Nome da peça</label><input class="input" id="p-name" value="${esc(p.name || '')}" placeholder="Ex.: Vestido midi de linho" autocomplete="off"></div>
         <div class="field"><label for="p-price">Preço</label><input class="input" id="p-price" value="${esc(p.price || '')}" placeholder="R$ 189" inputmode="decimal"></div>
-        <div class="field"><label for="p-offer">Condição ou oferta (opcional)</label><input class="input" id="p-offer" value="${esc(o.offer || '')}" placeholder="3x sem juros, frete grátis, só até domingo"></div>
+        <div class="field"><label for="p-offer">Condição ou oferta (opcional)</label><input class="input" id="p-offer" value="${esc(o.offer || '')}" placeholder="3x sem juros, frete grátis, só até domingo"></div></div>
+        <div class="sect"><span class="sect-t">${ic('store')}Sua loja</span>
         <div class="field"><label for="b-name">Nome da loja</label><input class="input" id="b-name" value="${esc(b.name || '')}" placeholder="Ex.: Closet da Ju" autocomplete="organization"></div>
-        <div class="field"><span class="lbl">Onde você fecha a venda</span><div class="chips">${chans.map(([k, l]) => `<button class="chip" type="button" data-chan="${k}" aria-pressed="${st.close_channel === k}">${l}</button>`).join('')}</div></div>
+        <div class="field"><span class="lbl">Onde você fecha a venda</span><div class="chips">${chans.map(([k, l, i]) => `<button class="chip" type="button" data-chan="${k}" aria-pressed="${st.close_channel === k}">${i}${l}</button>`).join('')}</div></div></div>
         <p class="hint" id="h"></p>
-        <button class="btn btn-primary btn-block" type="submit">Criar meu carrossel e reels</button>
-        <button class="btn btn-ghost btn-block" type="button" id="back">Voltar</button></form>`;
+        <button class="btn btn-primary btn-block btn-lg" type="submit">${ic('sparkles')}Criar meu carrossel e reels</button>
+        <button class="btn btn-ghost btn-block" type="button" id="back">${ic('back')}Voltar</button></form>`;
     $$('[data-chan]').forEach(x => x.onclick = () => $$('[data-chan]').forEach(y => y.setAttribute('aria-pressed', String(y === x))));
     const read = () => ({ ...o, product: { name: $('#p-name').value.trim(), price: $('#p-price').value.trim() }, offer: $('#p-offer').value.trim(),
       brand: { ...b, name: $('#b-name').value.trim(), colors: { primary: $('#c-primary').value, secondary: $('#c-secondary').value, accent: $('#c-accent').value }, strategy: { ...st, close_channel: $('[data-chan][aria-pressed="true"]')?.dataset.chan || st.close_channel || null } } });
@@ -329,7 +395,7 @@
   }
   function brandForm(b, meta, full = false) {
     const c = b.colors || {}, st = b.strategy || {};
-    const tiers = [['popular', 'Popular'], ['intermediario', 'Intermediário'], ['premium', 'Premium']], chans = [['whatsapp', 'WhatsApp'], ['site', 'Site'], ['direct', 'Direct'], ['loja', 'Loja física']];
+    const tiers = [['popular', 'Popular'], ['intermediario', 'Intermediário'], ['premium', 'Premium']], chans = [['whatsapp', 'WhatsApp', logo('whatsapp', 'c-wa')], ['site', 'Site', ic('globe')], ['direct', 'Direct', logo('instagram', 'c-ig')], ['loja', 'Loja física', ic('store')]];
     return `<div class="stack">
       ${meta?.site_error === 'blocked' ? `<p class="micro">O site da loja bloqueia leitura automática. Peguei nome e cores pelo logo público. Confira o resto.</p>` : meta?.site_error ? `<p class="micro">Não consegui ler o site (${esc(meta.site_error)}). Confira o que preenchi.</p>` : ''}
       ${meta?.site_guessed ? `<p class="micro">Achei o site da loja pelo @ e usei ele para logo, cores e produtos.</p>` : ''}
@@ -339,10 +405,10 @@
         <label class="swatch"><input type="color" id="c-primary" value="${esc(c.primary || '#1F140D')}"><span>Principal</span></label>
         <label class="swatch"><input type="color" id="c-secondary" value="${esc(c.secondary || '#FFF9EF')}"><span>Fundo</span></label>
         <label class="swatch"><input type="color" id="c-accent" value="${esc(c.accent || '#FFD83A')}"><span>Destaque</span></label></div></div>
-      <fieldset class="sell"><legend>Como você vende</legend>${meta?.no_site ? '' : '<p class="micro">Preenchi pelo que vi no site. Confira, isso muda o jeito de cada post vender.</p>'}
+      <fieldset class="sell"><legend>${ic('tag')}Como você vende</legend>${meta?.no_site ? '' : '<p class="micro">Preenchi pelo que vi no site. Confira, isso muda o jeito de cada post vender.</p>'}
         <div class="field"><span class="lbl">Faixa de preço</span><div class="chips" id="st-tier">${tiers.map(([k, l]) => `<button class="chip" type="button" data-tier="${k}" aria-pressed="${st.price_tier === k}">${l}</button>`).join('')}</div></div>
         <div class="field"><label for="st-diff">Por que comprar com você</label><input class="input" id="st-diff" value="${esc(st.differential || '')}" placeholder="Ex.: estampas autorais e troca fácil"></div>
-        <div class="field"><span class="lbl">Onde a venda fecha</span><div class="chips" id="st-chan">${chans.map(([k, l]) => `<button class="chip" type="button" data-chan="${k}" aria-pressed="${st.close_channel === k}">${l}</button>`).join('')}</div>
+        <div class="field"><span class="lbl">Onde a venda fecha</span><div class="chips" id="st-chan">${chans.map(([k, l, i]) => `<button class="chip" type="button" data-chan="${k}" aria-pressed="${st.close_channel === k}">${i}${l}</button>`).join('')}</div>
           <input class="input" id="st-wa" value="${esc(st.whatsapp || '')}" placeholder="WhatsApp da loja, com DDD" inputmode="tel" ${st.close_channel === 'whatsapp' ? '' : 'hidden'}></div>
         <div class="field"><label for="st-cond">Condições que você sempre oferece</label><input class="input" id="st-cond" value="${esc(st.conditions || '')}" placeholder="Ex.: 3x sem juros · frete grátis acima de R$ 199"></div>
         ${full ? `<div class="field"><label for="st-occ">Ocasiões de uso das suas clientes</label><input class="input" id="st-occ" value="${esc(st.occasions || '')}" placeholder="Ex.: trabalho, festa, praia"></div>
@@ -413,9 +479,8 @@
     $('#back').onclick = () => { ONB.set({ ...o, step: 'brand' }); render(); };
     if ($('#sac')) $('#sac').onclick = () => { ONB.set({ ...o, step: 'product' }); location.href = '/api/meta/connect?back=start'; };
   }
-  const GICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.7V6.6h-4a12 12 0 0 0 0 10.8z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.3.6 4.5 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"/></svg>';
   const emailOn = () => me?.email_login !== false;
-  const googleBtn = back => me?.google ? `<a class="btn btn-google btn-block" href="/api/auth/google?back=${back}">${GICON}Continuar com Google</a>${emailOn() ? '<p class="or"><span>ou com seu e-mail</span></p>' : ''}` : '';
+  const googleBtn = back => me?.google ? `<a class="btn btn-google btn-block" href="/api/auth/google?back=${back}">${logo('google')}Continuar com Google</a>${emailOn() ? '<p class="or"><span>ou com seu e-mail</span></p>' : ''}` : '';
   // campo de e-mail só quando o envio do código está ligado; sem Google nem e-mail, explica em vez de deixar um botão que não funciona
   const emailFields = (value = '') => emailOn() ? `<div class="field"><label for="email">E-mail</label><input class="input" id="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@sualoja.com.br" value="${esc(value)}"></div><p class="hint" id="h"></p><button class="btn btn-primary btn-block" type="submit"><span class="spin"></span>Receber código</button>` : me?.google ? '<p class="hint" id="h"></p>' : '<p class="hint" id="h">O login ainda não está liberado neste ambiente. Tente de novo mais tarde.</p>';
   const loginLead = () => emailOn() ? (me?.google ? 'Entre com o Google em um toque, ou receba um código no e-mail.' : 'Receba um código de 6 dígitos no e-mail.') : 'Entre com o Google em um toque.';
@@ -427,14 +492,16 @@
   function stepAuth(o) {
     if (me.user) { ONB.set({ ...o, step: 'generate' }); return render(); }
     const pf = !!o.meta?.photo_first;
-    main.innerHTML = `${pf ? stepsBar(3, 3) : stepsBar(4)}<div class="stack"><span class="eyebrow">Quase lá</span><h1>Onde eu guardo seus posts?</h1><p class="lead">${loginLead()} Sem senha, sem cartão. Logo depois eu crio.</p></div>
-      <form class="card" id="f">${googleBtn('start')}${emailFields(o.email || '')}<button class="btn btn-ghost btn-block" type="button" id="back">Voltar</button></form>`;
+    main.innerHTML = `${pf ? stepsBar(3, 3) : stepsBar(4)}<div class="stack"><span class="eyebrow">Último passo antes de criar</span><h1>Onde eu guardo seus posts?</h1><p class="lead">${loginLead()} Logo depois eu crio ${pf && o.product?.name ? 'o carrossel e o reels de ' + esc(o.product.name) : 'seu primeiro conteúdo'}.</p></div>
+      <form class="card" id="f">${googleBtn('start')}${emailFields(o.email || '')}
+        <ul class="perm"><li>${ic('check')}<b>Sem senha e sem cartão.</b> Você entra em um toque.</li><li>${ic('check')}<b>Seus posts ficam salvos</b> para baixar ou publicar quando quiser.</li><li>${ic('check')}<b>Nada vai para o ar sem você.</b> A Íris só cria; quem posta é você.</li></ul>
+        <button class="btn btn-ghost btn-block" type="button" id="back">${ic('back')}Voltar</button></form>`;
     $('#f').onsubmit = async e => { e.preventDefault(); const email = $('#email').value.trim(); const btn = $('#f button[type=submit]'); busy(btn, true);
       try { const d = await api('/auth/request', { method: 'POST', body: { email } }); ONB.set({ ...o, email }); codeForm(email, d.dev_code, async () => { await loadMe(); ONB.set({ ...ONB.get(), step: 'generate' }); render(); }); } catch (err) { $('#h').textContent = err.message; } finally { busy(btn, false); } };
     $('#back').onclick = () => { ONB.set({ ...o, step: pf ? 'details' : 'product' }); render(); };
   }
   function codeForm(email, devCode, onDone) {
-    main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><h1>Digite o código</h1><p class="lead">Enviado para ${esc(email)}. Vale por 10 minutos.</p></div>
+    main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><h1>Digite o código</h1><p class="lead">${ic('mail', 'sm')} Enviado para <b>${esc(email)}</b>. Vale por 10 minutos.</p></div>
       <form class="card" id="f"><input class="input code" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" value="${esc(devCode || '')}"><p class="hint" id="h"></p>
       ${devCode ? '<p class="micro center">Ambiente de desenvolvimento: o código veio preenchido porque o envio de e-mail não está configurado.</p>' : ''}
       <button class="btn btn-primary btn-block" type="submit"><span class="spin"></span>Entrar</button><button class="btn btn-ghost btn-block" type="button" id="again">Pedir outro código</button></form>`;
@@ -445,7 +512,7 @@
   async function stepGenerate(o) {
     main.innerHTML = `<div id="run"></div>`;
     const photo = o.file_data || (o.product?.image_url ? '/api/img?u=' + encodeURIComponent(o.product.image_url) : null);
-    const R = runPanel($('#run'), { title: 'Transformando sua foto em post', photo, tasks: [
+    const R = runPanel($('#run'), { title: `Criando para ${o.brand?.name || 'sua loja'}`, photo, tasks: [
       { id: 'brand', label: 'Guardar sua marca' }, { id: 'photo', label: 'Preparar a foto da peça' }, { id: 'copy', label: 'Escrever o hook, os slides e a legenda' },
       { id: 'art', label: 'Aplicar as cores e a fonte da marca' }, { id: 'reel', label: 'Gerar o vídeo do reels' }] });
     try {
@@ -480,12 +547,13 @@
   async function stepResult(o) {
     const ids = o.ids || [];
     if (!ids.length) { ONB.set({}); location.hash = '#/home'; return; }
-    main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><span class="eyebrow" style="justify-content:center">Feito para ${esc(me.brand?.name || 'sua loja')}</span><h1>Olha o que a Íris criou.</h1><p class="lead">Seu carrossel e seu reels, com a cara da sua marca. Passe os slides, ajuste o texto se quiser.</p></div><div class="stack" id="out"></div>
-      <button class="btn btn-primary btn-block" id="next" aria-busy="true"><span class="spin"></span>Finalizando seu reels…</button>`;
+    const bc = me.brand?.colors || {};
+    main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><span class="brand-chip"><span class="bs-sw">${['primary', 'secondary', 'accent'].map(k => `<i style="background:${esc(bc[k] || '#ccc')}"></i>`).join('')}</span>${esc(me.brand?.name || 'Sua loja')}${ic('check', 'sm ok')}</span><h1>Olha o que a Íris criou.</h1><p class="lead">Seu carrossel e seu reels, com a cara da sua marca. Passe os slides, ajuste o texto se quiser.</p></div><div class="stack" id="out"></div>
+      <div class="cta-bar"><button class="btn btn-primary btn-block btn-lg" id="next" aria-busy="true"><span class="spin"></span>Finalizando seu reels…</button><p class="fine">Depois você baixa as imagens, copia a legenda ou publica direto.</p></div>`;
     for (const id of ids) { const box = document.createElement('div'); $('#out').appendChild(box); contentBlock(box, id, false, true); }
     // o Instagram só entra quando os criativos estão prontos
     const ig = igBeta() || (me.instagram?.account && !me.instagram.account.expired), btn = $('#next');
-    const ready = () => { busy(btn, false); btn.lastChild.textContent = ig ? 'Quero postar no meu Instagram' : 'Quero baixar e postar'; };
+    const ready = () => { busy(btn, false); btn.lastChild.textContent = ig ? 'Quero postar no meu Instagram' : 'Quero baixar e postar'; btn.insertAdjacentHTML('beforeend', ic('arrow')); };
     const check = async () => { if (!document.body.contains(btn)) return;
       const cs = await Promise.all(ids.map(id => api('/contents/' + id).then(d => d.content).catch(() => null)));
       if (cs.some(c => c && ['queued', 'in_progress'].includes(c.status))) return setTimeout(check, 6000);
@@ -507,13 +575,22 @@
   }
   function payBar() {
     const { pixOn, cardOn, anual } = payState();
-    const seg = (k, v, l) => `<button class="chip" type="button" data-${k}="${v}" aria-pressed="${PAY[k] === v}">${l}</button>`;
-    if (!pixOn && !cardOn) return `<p class="fine center" style="margin:0">O pagamento está sendo liberado. Escolha o plano e a Íris te avisa assim que abrir, sem cobrar nada agora.</p>`;
+    const seg = (k, v, l) => `<button class="chip" type="button" data-${k}="${v}" aria-pressed="${PAY[k] === v}">${v === 'pix' ? logo('pix', 'c-pix') : v === 'card' ? ic('card') : ''}${l}</button>`;
+    if (!pixOn && !cardOn) return `<p class="pay-note">${ic('info', 'sm')} O pagamento está sendo liberado. Escolha o plano e a Íris te avisa assim que abrir, sem cobrar nada agora.</p>`;
     return `<div class="stack" style="gap:8px;align-items:center">${pixOn && cardOn ? `<div class="chips" style="justify-content:center">${seg('method', 'pix', 'Pix')}${seg('method', 'card', 'Cartão')}</div>` : ''}
       ${PAY.method === 'pix' && anual ? `<div class="chips" style="justify-content:center">${seg('period', 'mensal', 'Mensal')}${seg('period', 'anual', 'Anual <small>2 meses grátis</small>')}</div>` : ''}
-      <p class="fine center" style="margin:0">${PAY.method === 'pix' ? (PAY.period === 'anual' ? 'Um Pix por ano. Sem renovação automática.' : 'Um Pix por mês. A Íris avisa antes de vencer, sem cobrança automática.') : 'Cartão renova sozinho todo mês. Cancele quando quiser.'}</p></div>`;
+      <p class="pay-note">${PAY.method === 'pix' ? logo('pix', 'c-pix') : ic('card', 'sm')} ${PAY.method === 'pix' ? (PAY.period === 'anual' ? 'Um Pix por ano. Sem renovação automática.' : 'Um Pix por mês. A Íris avisa antes de vencer, sem cobrança automática.') : 'Cartão renova sozinho todo mês. Cancele quando quiser.'}</p></div>`;
   }
   const planCta = () => { const { pixOn, cardOn } = payState(); return pixOn || cardOn ? 'Assinar' : 'Quero o'; };
+  // cartão de plano único para oferta e configurações
+  function planCard(k, p, { featured = false, current = false, renewPix = false } = {}) {
+    return `<div class="plan ${featured ? 'feat' : ''} ${current ? 'on' : ''}">
+      <div class="plan-h"><h3>${esc(p.name)}</h3>${featured ? '<span class="tag wait">Mais escolhido</span>' : current ? '<span class="tag ok">seu plano</span>' : ''}</div>
+      <div class="price">${p.price ? priceLabel(p) : 'R$ 0<small>/mês</small>'}</div>
+      <ul>${p.perks.map(x => `<li>${ic('check')}${esc(x)}</li>`).join('')}</ul>
+      ${current || k === 'free' ? '' : `<button class="btn ${featured ? 'btn-primary' : 'btn-ghost'} btn-block" data-plan="${k}"><span class="spin"></span>${planCta()} ${esc(p.name)}${ic('arrow')}</button>`}
+      ${current && renewPix ? `<button class="btn btn-ghost btn-block" data-plan="${k}"><span class="spin"></span>${logo('pix', 'c-pix')}Renovar com Pix</button>` : ''}</div>`;
+  }
   const priceLabel = p => PAY.method === 'pix' && PAY.period === 'anual' ? `R$ ${p.price * 10}<small>/ano</small>` : `R$ ${p.price}<small>/mês</small>`;
   function bindPay(rerender, back) {
     $$('[data-method]').forEach(b => b.onclick = () => { PAY.method = b.dataset.method; rerender(); });
@@ -530,10 +607,10 @@
     const plans = me.plans;
     main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><h1>Conteúdo assim toda semana.</h1><p class="lead">Escolha um plano para baixar o que você acabou de ver e continuar criando sem pensar em post.</p></div>
       ${payBar()}
-      <div class="plans">${['pro', 'basico', 'loja'].map(k => { const p = plans[k]; return `<div class="plan ${k === 'pro' ? 'on' : ''}">${k === 'pro' ? '<span class="tag wait">Mais escolhido</span>' : ''}<h3>${esc(p.name)}</h3><div class="price">${priceLabel(p)}</div><ul>${p.perks.map(x => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn ${k === 'pro' ? 'btn-primary' : 'btn-ghost'} btn-block" data-plan="${k}"><span class="spin"></span>${planCta()} ${esc(p.name)}</button></div>`; }).join('')}</div>
-      <p class="fine center">Sem fidelidade. Pagamento seguro.</p>
-      <p class="micro center"><a href="#" id="free">Continuar no plano grátis</a> <span class="fine">(2 posts por mês, sem reels)</span></p>
-      <p class="micro center"><a href="#" id="back">← Voltar para o conteúdo</a></p>`;
+      <div class="plans">${['pro', 'basico', 'loja'].map(k => planCard(k, plans[k], { featured: k === 'pro' })).join('')}</div>
+      <p class="pay-note">${ic('shield', 'sm')} Sem fidelidade. Pagamento seguro.</p>
+      <button class="btn btn-ghost btn-block" id="free">Continuar no plano grátis</button><p class="fine center" style="margin-top:-8px">No grátis: 2 posts por mês, sem reels. Dá para mudar quando quiser.</p>
+      <p class="micro center"><a href="#" id="back">${ic('back', 'sm')} Voltar para o conteúdo</a></p>`;
     bindPay(() => stepOffer(o), 'start');
     $('#free').onclick = e => { e.preventDefault(); ONB.set({}); location.hash = '#/home'; };
     $('#back').onclick = e => { e.preventDefault(); ONB.set({ ...o, step: 'result' }); render(); };
@@ -547,7 +624,7 @@
   function igCard(back) {
     const ig = me.instagram || {}, acc = ig.account;
     if (acc && !acc.expired) return `<div class="row" style="gap:12px">${acc.picture_url ? `<img src="/api/img?u=${encodeURIComponent(acc.picture_url)}" alt="" style="width:44px;height:44px;border-radius:50%" onerror="this.remove()">` : ''}<p class="lead" style="margin:0">Conectado como <b>@${esc(acc.username || '')}</b>.</p></div>`;
-    return `${acc?.expired ? '<p class="hint">A conexão expirou. Conecte de novo.</p>' : ''}<p class="lead">Precisa ser uma conta comercial ou de criador. Você entra pelo próprio Instagram e a Íris só ganha permissão para ver o perfil e publicar.</p><a class="btn btn-primary btn-block" href="/api/instagram/connect?back=${back}">Conectar Instagram</a>`;
+    return `${acc?.expired ? '<p class="hint">A conexão expirou. Conecte de novo.</p>' : ''}<p class="lead">Precisa ser uma conta comercial ou de criador. Você entra pelo próprio Instagram e a Íris só ganha permissão para ver o perfil e publicar.</p><a class="btn btn-ig btn-block" href="/api/instagram/connect?back=${back}">${logo('instagram')}Conectar Instagram</a>`;
   }
   // Logo depois dos criativos prontos: conectar para publicar o que ela acabou de ver. Permissão explicada ao lado do pedido.
   function stepInstagram(o, r) {
@@ -560,8 +637,8 @@
           <li><b>Nada vai para o ar sem você aprovar.</b> A Íris só publica o post que você mandar.</li>
           <li><b>Lê seu perfil e o alcance dos posts</b> para mostrar o que está vendendo. Não lê o direct.</li></ul>
         <p class="fine">Funciona com conta comercial ou de criador. Dá para desconectar quando quiser em Configurações.</p>
-        <a class="btn btn-primary btn-block" href="/api/instagram/connect?back=start">Conectar Instagram</a>`}</div>
-      <button class="btn ${done ? 'btn-primary' : 'btn-ghost'} btn-block" id="go">${done ? 'Continuar' : 'Agora não, vou baixar'}</button>`;
+        <a class="btn btn-ig btn-block" href="/api/instagram/connect?back=start">${logo('instagram')}Conectar Instagram</a>`}</div>
+      <button class="btn ${done ? 'btn-primary' : 'btn-ghost'} btn-block" id="go">${done ? 'Continuar' : 'Agora não, vou baixar'}${done ? ic('arrow') : ''}</button>`;
     $('#go').onclick = () => { ONB.set({ ...o, step: 'offer' }); render(); scrollTo(0, 0); };
   }
 
@@ -600,6 +677,7 @@
     const today = new Date(from.getFullYear(), from.getMonth(), from.getDate());
     return out.map(x => ({ ...x, days: Math.round((x.d - today) / 86400e3) })).filter(x => x.days >= 0 && x.days <= 75).sort((a, b) => a.days - b.days);
   }
+  const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; };
   const monday = (d = new Date()) => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
   async function viewHome() {
     const { contents } = await api('/contents');
@@ -623,27 +701,27 @@
     const weeks = [...Array(8)].map((_, i) => { const s0 = new Date(wk); s0.setDate(s0.getDate() - (7 - i) * 7); const e0 = new Date(s0); e0.setDate(e0.getDate() + 7); return { n: contents.filter(c => { const t = new Date(c.created_at); return t >= s0 && t < e0; }).length, now: i === 7, label: `${s0.getDate()}/${s0.getMonth() + 1}` }; });
     const maxW = Math.max(1, ...weeks.map(w => w.n));
     main.innerHTML = `
-      <div class="dash-head"><div class="who">${b.logo_url ? `<img src="${imgSrc(b.logo_url)}" alt="" onerror="this.remove()">` : ''}<div><span class="eyebrow">Visão geral</span><h1>${esc(b.name || 'Sua loja')}</h1></div></div>
-        <a class="btn btn-primary hide-m" href="${nextHref}">Criar o próximo post</a></div>
+      <div class="dash-head"><div class="who">${b.logo_url ? `<img src="${imgSrc(b.logo_url)}" alt="" onerror="this.remove()">` : ''}<div><span class="eyebrow">${greeting()} · Visão geral</span><h1>${esc(b.name || 'Sua loja')}</h1></div></div>
+        <a class="btn btn-primary hide-m" href="${nextHref}">${ic('sparkles')}Criar o próximo post</a></div>
       ${me.billing?.renew_soon ? `<div class="card tight row between"><p style="margin:0">Seu plano pago com Pix vence em ${Math.max(0, Math.ceil((new Date(me.billing.until) - Date.now()) / 86400e3))} dia(s).</p><a class="btn btn-primary btn-sm" href="#/plano">Renovar com Pix</a></div>` : ''}
       ${chatCard(next, prod, soon)}
       <div class="kpis">
-        <div class="kpi"><div class="ic ok"><svg viewBox="0 0 24 24"><path d="M5 12.5 10 17l9-10"/></svg></div><span>Prontos para postar</span><b>${ready.length}</b><small>${generating.length ? generating.length + ' gerando agora' : 'aprovados e para revisar'}</small></div>
-        <div class="kpi"><div class="ic pub"><svg viewBox="0 0 24 24"><path d="M4 12h12M12 6l6 6-6 6"/></svg></div><span>Publicados no mês</span><b>${published.length}</b><small>${me.instagram?.account ? 'direto no Instagram' : 'conecte o Instagram para publicar'}</small></div>
-        <div class="kpi"><div class="ic img"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m4 16 5-5 4 4 3-3 4 4"/></svg></div><span>Posts restantes</span><b>${u.left.posts}</b><small>de ${u.limit.posts} no mês</small></div>
-        <div class="kpi"><div class="ic vid"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></svg></div><span>Reels restantes</span><b>${u.limit.reels ? u.left.reels : '–'}</b><small>${u.limit.reels ? 'de ' + u.limit.reels + ' no mês' : 'não incluso no plano grátis'}</small></div>
+        <div class="kpi"><div class="ic ok">${ic('check')}</div><span>Prontos para postar</span><b>${ready.length}</b><small>${generating.length ? generating.length + ' gerando agora' : 'aprovados e para revisar'}</small></div>
+        <div class="kpi"><div class="ic pub">${ic('send')}</div><span>Publicados no mês</span><b>${published.length}</b><small>${me.instagram?.account ? 'direto no Instagram' : 'conecte o Instagram para publicar'}</small></div>
+        <div class="kpi"><div class="ic img">${ic('image')}</div><span>Posts restantes</span><b>${u.left.posts}</b><small>de ${u.limit.posts} no mês</small></div>
+        <div class="kpi"><div class="ic vid">${ic('reel')}</div><span>Reels restantes</span><b>${u.limit.reels ? u.left.reels : '–'}</b><small>${u.limit.reels ? 'de ' + u.limit.reels + ' no mês' : 'não incluso no plano grátis'}</small></div>
       </div>
       <div class="dash-grid">
         <div class="stack">
-          <div class="card c-funil"><div class="row between"><h3>Funil da semana<small>Postagens desde segunda, por etapa. Reels atraem, carrossel convence, feed vende.</small></h3><button class="btn btn-ghost btn-sm" type="button" id="ins-r" hidden>Atualizar</button></div>
+          <div class="card c-funil"><div class="sec-h"><h3>Funil da semana<small>Postagens desde segunda, por etapa. Reels atraem, carrossel convence, feed vende.</small></h3><button class="btn btn-ghost btn-sm" type="button" id="ins-r" hidden>${ic('refresh')}Atualizar</button></div>
             <div class="fn" id="fn">${['reel', 'carousel', 'feed'].map(f => fnRow(f, { posts: done(f) }, goal[f], null)).join('')}</div>
             <div id="fn-foot" class="fn-foot"></div>
-            ${next && prod ? `<div class="suggest"><span class="eyebrow">Próximo post sugerido</span><p><b>${FORMAT[next]} de ${esc(prod.name)}</b> ${why[next]}${soon && next !== 'reel' ? `, já puxando o gancho de ${esc(soon.n)}` : ''}.</p><a class="btn btn-primary btn-sm" href="${nextHref}">Criar agora</a></div>`
-              : !prod ? `<div class="suggest"><p>Envie a foto de um produto para a Íris sugerir os próximos posts.</p><a class="btn btn-primary btn-sm" href="#/create">Enviar foto</a></div>`
-              : `<div class="suggest"><p>Você usou os créditos do mês. Mude de plano para manter o ritmo.</p><a class="btn btn-primary btn-sm" href="#/plano">Ver planos</a></div>`}
+            ${next && prod ? `<div class="suggest"><span class="eyebrow">Próximo post sugerido</span><p><b>${FORMAT[next]} de ${esc(prod.name)}</b> ${why[next]}${soon && next !== 'reel' ? `, já puxando o gancho de ${esc(soon.n)}` : ''}.</p><a class="btn btn-primary btn-sm" href="${nextHref}">${ic('sparkles')}Criar agora</a></div>`
+              : !prod ? `<div class="suggest"><p>Envie a foto de um produto para a Íris sugerir os próximos posts.</p><a class="btn btn-primary btn-sm" href="#/create">${ic('camera')}Enviar foto</a></div>`
+              : `<div class="suggest"><p>Você usou os créditos do mês. Mude de plano para manter o ritmo.</p><a class="btn btn-primary btn-sm" href="#/plano">${ic('zap')}Ver planos</a></div>`}
           </div>
-          <div class="card c-prontos"><div class="row between"><h3>Prontos para postar<small>Revise, aprove e publique.</small></h3><a class="micro" href="#/conteudos">Ver todos</a></div>
-            ${ready.length ? `<div class="posts ready">${ready.slice(0, 8).map(postCard).join('')}</div>` : `<p class="lead">${generating.length ? 'Seu conteúdo está sendo gerado. Volte em alguns minutos.' : 'Nada pronto ainda. Crie o próximo post sugerido acima.'}</p>`}
+          <div class="card c-prontos"><div class="sec-h"><h3>Prontos para postar<small>Revise, aprove e publique.</small></h3><a class="micro" href="#/conteudos">Ver todos${ic('arrow', 'sm')}</a></div>
+            ${ready.length ? `<div class="posts ready">${ready.slice(0, 8).map(postCard).join('')}</div>` : `<div class="empty-state">${ic(generating.length ? 'clock' : 'sparkles')}<b>${generating.length ? 'Seu conteúdo está sendo gerado' : 'Nada pronto ainda'}</b><span>${generating.length ? 'Volte em alguns minutos.' : 'Crie o próximo post sugerido acima e ele aparece aqui.'}</span></div>`}
           </div>
           <div class="card c-ritmo"><h3>Ritmo<small>Conteúdos criados por semana.</small></h3>
             <div class="weeks">${weeks.map(w => `<div class="${w.now ? 'now' : ''}"><i style="height:${Math.max(4, Math.round(w.n / maxW * 52))}px" title="${w.n} conteúdos"></i><span>${w.label}</span></div>`).join('')}</div></div>
@@ -651,13 +729,13 @@
         <div class="stack">
           <div class="card c-datas"><h3>Datas que vendem<small>O que vem aí no varejo.</small></h3>
             ${dates.length ? `<div class="dates">${dates.slice(0, 4).map(d => `<div class="d"><div class="when">${d.days === 0 ? 'hoje' : d.days}<small>${d.days === 0 ? '' : d.days === 1 ? 'dia' : 'dias'}</small></div><div><b>${esc(d.n)}</b> · ${d.d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}<p>${esc(d.t)}</p></div></div>`).join('')}</div>` : '<p class="lead">Nenhuma data forte nas próximas semanas. Bom momento para novidades.</p>'}</div>
-          <div class="card c-loja"><div class="row between"><h3>Sua loja</h3><a class="micro" href="#/conta">Editar</a></div>
+          <div class="card c-loja"><div class="sec-h"><h3>Sua loja</h3><a class="micro" href="#/conta">${ic('pencil', 'sm')}Editar</a></div>
             <dl class="ctx">
               <div><dt>Cores</dt><dd class="sw">${['primary', 'secondary', 'accent'].map(k => `<i style="background:${esc(b.colors?.[k] || '#ccc')}"></i>`).join('')}</dd></div>
               ${b.icp ? `<div><dt>Quem compra</dt><dd>${esc(b.icp)}</dd></div>` : ''}
               ${b.tone ? `<div><dt>Tom de voz</dt><dd>${esc(b.tone)}</dd></div>` : ''}
               <div><dt>Produtos</dt><dd>${(me.products || []).length} cadastrados${b.site_url ? ` · <a href="${esc(b.site_url)}" target="_blank" rel="noopener">site</a>` : ''}</dd></div>
-              <div><dt>Instagram</dt><dd>${me.instagram?.account ? '@' + esc(me.instagram.account.username) + ' conectado' : `<a href="#/conta">Conectar para publicar</a>`}</dd></div>
+              <div><dt>Instagram</dt><dd class="row" style="gap:6px">${logo('instagram', 'sm c-ig')}${me.instagram?.account ? '@' + esc(me.instagram.account.username) + ' conectado' : `<a href="#/conta">Conectar para publicar</a>`}</dd></div>
             </dl></div>
         </div>
       </div>`;
@@ -730,15 +808,15 @@
     return `<div class="card chat">
       <div class="chat-log" id="chat-log">${CHAT.log.map(chatMsg).join('')}</div>
       <form id="chat-f" class="stack" style="gap:10px">
-        <div class="chat-box"><label for="chat-t" class="pfx">Íris, cria</label><textarea id="chat-t" rows="2" placeholder="um carrossel do vestido novo para a Black Friday, 3x sem juros"></textarea></div>
+        <div class="chat-box"><label for="chat-t" class="pfx">${ic('sparkles')}Íris, cria</label><textarea id="chat-t" rows="2" placeholder="um carrossel do vestido novo para a Black Friday, 3x sem juros"></textarea></div>
         <div id="chat-att" class="chat-att" hidden></div>
         <div id="chat-ig" class="chat-ig" hidden></div>
         <div class="row between">
           <div class="row">
-            <label class="btn btn-ghost btn-sm"><input type="file" id="chat-file" accept="image/*" hidden><svg viewBox="0 0 24 24" class="i"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg><span>Foto<span class="hide-m"> do celular</span></span></label>
-            <button class="btn btn-ghost btn-sm" type="button" id="chat-igb"><svg viewBox="0 0 24 24" class="i"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg><span>${ig.account && !ig.account.expired ? '<span class="hide-m">Do meu </span>Instagram' : '<span class="hide-m">Conectar </span>Instagram'}</span></button>
+            <label class="btn btn-ghost btn-sm"><input type="file" id="chat-file" accept="image/*" hidden>${ic('camera')}<span>Foto<span class="hide-m"> do celular</span></span></label>
+            <button class="btn btn-ghost btn-sm" type="button" id="chat-igb">${logo('instagram', 'c-ig')}<span>${ig.account && !ig.account.expired ? '<span class="hide-m">Do meu </span>Instagram' : '<span class="hide-m">Conectar </span>Instagram'}</span></button>
           </div>
-          <button class="btn btn-primary btn-sm" type="submit" id="chat-go"><span class="spin"></span>Criar</button>
+          <button class="btn btn-primary btn-sm" type="submit" id="chat-go"><span class="spin"></span>Criar${ic('send')}</button>
         </div>
         <div class="chips">${ideas.map(t => `<button class="chip" type="button" data-idea="${esc(t)}">${esc(t)}</button>`).join('')}</div>
       </form></div>`;
@@ -789,10 +867,11 @@
     const { contents } = await api('/contents');
     const f = r.q.get('f') || 'all';
     const list = contents.filter(c => f === 'all' || c.format === f);
-    const cols = [['Gerando', c => ['queued', 'in_progress'].includes(c.status)], ['Para revisar', c => c.status === 'completed'], ['Aprovados', c => c.status === 'approved'], ['Publicados', c => c.status === 'published'], ['Com erro', c => c.status === 'failed']];
-    main.innerHTML = `<div class="dash-head"><div><span class="eyebrow">Fluxo de postagens</span><h1>Conteúdos</h1></div><a class="btn btn-primary" href="#/create">Criar</a></div>
+    const cols = [['Gerando', c => ['queued', 'in_progress'].includes(c.status), 'gerando', 'clock', 'Nada gerando agora.'], ['Para revisar', c => c.status === 'completed', 'revisar', 'eye', 'Tudo revisado.'], ['Aprovados', c => c.status === 'approved', 'aprovados', 'check', 'Aprove um conteúdo para ele ficar pronto para postar.'], ['Publicados', c => c.status === 'published', 'publicados', 'send', 'O que você publicar aparece aqui.'], ['Com erro', c => c.status === 'failed', 'erro', 'alert', '']];
+    main.innerHTML = `<div class="dash-head"><div><span class="eyebrow">Fluxo de postagens</span><h1>Conteúdos</h1></div><a class="btn btn-primary" href="#/create">${ic('plus')}Criar</a></div>
       <nav class="subnav">${[['all', 'Todos'], ['reel', 'Reels · topo'], ['carousel', 'Carrossel · meio'], ['feed', 'Feed · fundo']].map(([k, l]) => `<a href="#/conteudos?f=${k}" aria-current="${f === k ? 'page' : 'false'}">${l}</a>`).join('')}</nav>
-      <div class="board">${cols.filter(([n, fn]) => n !== 'Com erro' || list.some(fn)).map(([n, fn]) => { const items = list.filter(fn); return `<section class="col"><h3>${n}<span>${items.length}</span></h3>${items.length ? items.map(postCard).join('') : '<p class="empty">Nada aqui.</p>'}</section>`; }).join('')}</div>`;
+      ${list.length ? '' : `<div class="empty-state">${ic('sparkles')}<b>Nenhum conteúdo ainda</b><span>Envie a foto de uma peça e a Íris cria o post, o carrossel e o reels.</span><a class="btn btn-primary btn-sm" href="#/create">${ic('camera')}Criar o primeiro</a></div>`}
+      <div class="board">${cols.filter(([n, fn]) => n !== 'Com erro' || list.some(fn)).map(([n, fn, cls, icn, empty]) => { const items = list.filter(fn); return `<section class="col ${cls}"><h3><span class="st"><i></i>${n}</span><span>${items.length}</span></h3>${items.length ? items.map(postCard).join('') : `<p class="empty">${ic(icn)}${empty}</p>`}</section>`; }).join('')}</div>`;
     hydrateArts(list);
   }
   const thumb = c => c.spec.product?.image_url ? (c.spec.product.image_url.startsWith(location.origin) ? c.spec.product.image_url : '/api/img?u=' + encodeURIComponent(c.spec.product.image_url)) : '/assets/iris-mark.png';
@@ -802,24 +881,22 @@
   async function viewCreate(r) {
     const prods = me.products || [];
     const pre = r.q.get('product'), preF = r.q.get('format');
-    main.innerHTML = `<div class="stack"><span class="eyebrow">Criar</span><h1>O que vamos postar?</h1></div>
+    const FMT = [['reel', 'Reels', 'topo', 'Atrai gente nova. Vídeo curto, produto sem texto na tela.'], ['carousel', 'Carrossel', 'meio', 'Convence. Detalhes, uso e combinações em 5 slides.'], ['feed', 'Post no feed', 'fundo', 'Vende. Preço e condição para fechar.']];
+    main.innerHTML = `<div class="stack"><span class="eyebrow">Criar</span><h1>O que vamos postar?</h1><p class="lead">Escolha a peça, o formato e, se quiser, a oferta. A Íris escreve e monta a arte com a sua marca.</p></div>
       <form class="card" id="f">
-        <div class="field"><span class="lbl">Produto</span><div class="grid" id="grid"><label class="pick add"><input type="file" id="file" accept="image/*" hidden>+ Foto do celular</label>${prods.map(p => `<button class="pick" type="button" data-id="${p.id}" aria-pressed="${p.id === pre ? 'true' : 'false'}"><img src="${p.image_url.startsWith(location.origin) ? p.image_url : '/api/img?u=' + encodeURIComponent(p.image_url)}" alt="${esc(p.name)}" loading="lazy"></button>`).join('')}</div></div>
+        <div class="field"><span class="lbl">Produto</span><div class="grid" id="grid"><label class="pick add"><input type="file" id="file" accept="image/*" hidden>${ic('camera')}Foto do celular<small>peça nova</small></label>${prods.map(p => `<button class="pick" type="button" data-id="${p.id}" aria-pressed="${p.id === pre ? 'true' : 'false'}"><img src="${p.image_url.startsWith(location.origin) ? p.image_url : '/api/img?u=' + encodeURIComponent(p.image_url)}" alt="${esc(p.name)}" loading="lazy"></button>`).join('')}</div></div>
         <div id="newp" hidden class="stack"><div class="field"><label for="p-name">Nome do produto</label><input class="input" id="p-name"></div><div class="field"><label for="p-price">Preço</label><input class="input" id="p-price" placeholder="R$ 189"></div></div>
-        <div class="field"><span class="lbl">Formatos</span><div class="chips">
-          <button class="chip" type="button" data-f="reel" aria-pressed="${preF === 'reel'}">Reels <small>topo · ser descoberto</small></button>
-          <button class="chip" type="button" data-f="carousel" aria-pressed="${preF === 'carousel'}">Carrossel <small>meio · convencer</small></button>
-          <button class="chip" type="button" data-f="feed" aria-pressed="${!preF || preF === 'feed'}">Post no feed <small>fundo · vender</small></button></div>
-          <p class="micro">Reels mostra o produto sem texto na tela. Carrossel explica. Feed fecha a venda com preço e oferta.</p>
-          <p class="micro">Você tem ${me.usage.left.posts} posts e ${me.usage.left.reels} reels neste mês.</p></div>
+        <div class="field"><span class="lbl">Formatos</span><div class="fmts">
+          ${FMT.map(([k, n, st, help]) => `<button class="fmt st-${st}" type="button" data-f="${k}" aria-pressed="${preF ? preF === k : k === 'feed'}"><span class="fi">${ic(k === 'feed' ? 'image' : k)}</span><span><b>${n} ${funnelTag(k)}</b><small>${help}</small></span><span class="ck">${ic('check')}</span></button>`).join('')}</div>
+          <p class="credits"><span>${ic('image')}<b>${me.usage.left.posts}</b> posts</span><span>${ic('reel')}<b>${me.usage.limit.reels ? me.usage.left.reels : 0}</b> reels</span><span>restantes neste mês${me.user.plan === 'free' ? ' · <a href="#/plano">ver planos</a>' : ''}</span></p></div>
         <div class="field"><label for="offer">Condição ou oferta (opcional, não entra no reels)</label><input class="input" id="offer" placeholder="3x sem juros, frete grátis, só até domingo" value="${esc(r.q.get('offer') || '')}"></div>
         <p class="hint" id="h"></p>
-        <button class="btn btn-primary btn-block" type="submit"><span class="spin"></span>Gerar</button></form>`;
+        <button class="btn btn-primary btn-block btn-lg" type="submit"><span class="spin"></span>${ic('sparkles')}Gerar</button></form>`;
     let pid = pre || null, file = null;
     $$('.pick[data-id]').forEach(b => b.onclick = () => { $$('.pick').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); pid = b.dataset.id; file = null; $('#newp').hidden = true; });
     $('#file').onchange = async e => { const f = e.target.files[0]; if (!f) return; file = dataUrlToBlob(await readPhoto(f)); pid = null; $$('.pick').forEach(x => x.setAttribute('aria-pressed', 'false')); const lab = $('.pick.add'); lab.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="">`; lab.setAttribute('aria-pressed', 'true'); $('#newp').hidden = false; $('#p-name').focus(); };
-    $$('.chip[data-f]').forEach(c => c.onclick = () => c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'));
-    $('#f').onsubmit = async e => { e.preventDefault(); const formats = $$('.chip[aria-pressed="true"]').map(c => c.dataset.f); const btn = $('#f button[type=submit]');
+    $$('.fmt[data-f]').forEach(c => c.onclick = () => c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'));
+    $('#f').onsubmit = async e => { e.preventDefault(); const formats = $$('.fmt[aria-pressed="true"]').map(c => c.dataset.f); const btn = $('#f button[type=submit]');
       if (!formats.length) { $('#h').textContent = 'Escolha pelo menos um formato.'; return; }
       if (!pid && !file) { $('#h').textContent = 'Escolha um produto ou envie uma foto.'; return; }
       busy(btn, true);
@@ -842,7 +919,7 @@
 
   /* ---------- conteúdo ---------- */
   async function viewContent(r) {
-    main.innerHTML = `<a class="micro" href="#/conteudos">← Conteúdos</a><div id="box"></div>`;
+    main.innerHTML = `<a class="back" href="#/conteudos">${ic('back')}Conteúdos</a><div id="box"></div>`;
     contentBlock($('#box'), r.id, true);
   }
   async function contentBlock(box, id, full, showcase = false) {
@@ -859,23 +936,23 @@
       } catch (e) { console.error(e); pv.innerHTML = `<p class="hint">Não consegui montar a arte: ${esc(e.message)}</p>`; }
       // edição
       const fields = c.format === 'feed' ? [['hook', 'Hook (título da arte)'], ['body', 'Body (subtítulo da arte)'], ['caption', 'Legenda']] : c.format === 'reel' ? [['hook', 'Gancho (1ª linha da legenda, fora do vídeo)'], ['caption', 'Legenda']] : [['caption', 'Legenda']];
-      ed.innerHTML = `<details><summary class="btn btn-ghost btn-sm">Editar texto</summary><div class="stack" style="padding-top:12px">${fields.map(([k, l]) => `<div class="field"><label for="e-${k}">${l}</label><textarea class="input" id="e-${k}">${esc(copy[k] || (k === 'hook' ? copy.headline || copy.title : '') || '')}</textarea></div>`).join('')}
+      ed.innerHTML = `<details><summary class="btn btn-ghost btn-sm">${ic('pencil')}Editar texto</summary><div class="stack" style="padding-top:12px">${fields.map(([k, l]) => `<div class="field"><label for="e-${k}">${l}</label><textarea class="input" id="e-${k}">${esc(copy[k] || (k === 'hook' ? copy.headline || copy.title : '') || '')}</textarea></div>`).join('')}
         ${c.format === 'carousel' ? (copy.slides || []).map((s, i) => `<div class="field"><label>Slide ${i + 1}: hook e body</label><input class="input" id="s-t-${i}" value="${esc(s.title)}"><input class="input" id="s-b-${i}" value="${esc(s.body)}"></div>`).join('') : ''}
-        <button class="btn btn-primary btn-sm" id="save">Salvar e montar de novo</button></div></details>`;
+        <button class="btn btn-primary btn-sm" id="save">${ic('check')}Salvar e montar de novo</button></div></details>`;
       $('#save', box).onclick = async () => { const nc = {}; fields.forEach(([k]) => nc[k] = $('#e-' + k, box).value); if (c.format === 'carousel') nc.slides = (copy.slides || []).map((s, i) => ({ title: $('#s-t-' + i, box).value, body: $('#s-b-' + i, box).value }));
         c = (await api('/contents/' + c.id, { method: 'PATCH', body: { copy: nc } })).content; draw(); toast('Texto salvo.'); };
       // ações
       const approved = c.status === 'approved', published = c.status === 'published', ready = c.status === 'completed' || approved || published;
       if (showcase) { ac.innerHTML = ''; if (c.format === 'reel' && ['queued', 'in_progress'].includes(c.status)) setTimeout(async () => { try { c = (await api('/contents/' + c.id)).content; } catch { } if (document.body.contains(box)) draw(); }, 6000); return; }
       const ig = me.instagram || {}, igOn = ig.account && !ig.account.expired, canPub = ready && !published && (c.format !== 'reel' || c.output_url || c.output_key);
-      ac.innerHTML = `${published ? `${c.ig_permalink ? `<a class="btn btn-primary" href="${esc(c.ig_permalink)}" target="_blank" rel="noopener">Ver no Instagram</a>` : '<span class="micro">Publicado no Instagram.</span>'}` : ''}
-        ${canPub && igOn ? `<button class="btn btn-primary" id="pub"><span class="spin"></span>Publicar no Instagram</button>` : ''}
-        ${canPub && !igOn && ig.enabled ? `<a class="btn btn-ghost" href="/api/instagram/connect">Conectar Instagram para publicar</a>` : ''}
-        ${ready && !published ? `<button class="btn ${approved || igOn ? 'btn-ghost' : 'btn-primary'}" id="ap">${approved ? 'Desaprovar' : 'Aprovar'}</button>` : ''}
-        ${ready ? `<button class="btn btn-ghost" id="dl">Baixar ${c.format === 'reel' ? 'capa' : c.format === 'carousel' ? 'slides' : 'imagem'}</button>` : ''}
-        ${c.format === 'reel' && c.output_url ? `<a class="btn btn-ghost" href="${c.output_key ? '/media/' + c.output_key + '?download' : c.output_url}" download>Baixar vídeo</a>` : ''}
-        ${ready ? `<button class="btn btn-ghost" id="cp">Copiar legenda</button>` : ''}
-        ${full ? `<button class="btn btn-ghost btn-sm" id="del">Excluir</button>` : ''}`;
+      ac.innerHTML = `${published ? `${c.ig_permalink ? `<a class="btn btn-primary" href="${esc(c.ig_permalink)}" target="_blank" rel="noopener">${logo('instagram')}Ver no Instagram</a>` : '<span class="micro">Publicado no Instagram.</span>'}` : ''}
+        ${canPub && igOn ? `<button class="btn btn-ig" id="pub"><span class="spin"></span>${logo('instagram')}Publicar no Instagram</button>` : ''}
+        ${canPub && !igOn && ig.enabled ? `<a class="btn btn-ghost" href="/api/instagram/connect">${logo('instagram', 'c-ig')}Conectar Instagram para publicar</a>` : ''}
+        ${ready && !published ? `<button class="btn ${approved || igOn ? 'btn-ghost' : 'btn-primary'}" id="ap">${ic(approved ? 'x' : 'check')}${approved ? 'Desaprovar' : 'Aprovar'}</button>` : ''}
+        ${ready ? `<button class="btn btn-ghost" id="dl">${ic('download')}Baixar ${c.format === 'reel' ? 'capa' : c.format === 'carousel' ? 'slides' : 'imagem'}</button>` : ''}
+        ${c.format === 'reel' && c.output_url ? `<a class="btn btn-ghost" href="${c.output_key ? '/media/' + c.output_key + '?download' : c.output_url}" download>${ic('download')}Baixar vídeo</a>` : ''}
+        ${ready ? `<button class="btn btn-ghost" id="cp">${ic('copy')}Copiar legenda</button>` : ''}
+        ${full ? `<button class="btn btn-ghost btn-sm" id="del">${ic('trash')}Excluir</button>` : ''}`;
       if ($('#ap', box)) $('#ap', box).onclick = async () => { c = (await api('/contents/' + c.id, { method: 'PATCH', body: { action: approved ? 'unapprove' : 'approve' } })).content; draw(); toast(approved ? 'Voltou para rascunho.' : 'Aprovado. Pode postar.'); };
       if ($('#dl', box)) $('#dl', box).onclick = () => { trackValue(); downloadAll(box, c); };
       if ($('#pub', box)) $('#pub', box).onclick = async () => { const btn = $('#pub', box); busy(btn, true); try { await publishToIg(box, c); trackValue(); c = (await api('/contents/' + c.id)).content; draw(); } catch (e) { toast(e.message, 6000); busy(btn, false); } };
@@ -1014,7 +1091,7 @@
       <nav class="subnav"><a href="#/conta">Marca e integrações</a><a href="#/plano" aria-current="page">Plano e pagamento</a></nav>
       ${me.billing?.until && cur !== 'free' ? `<p class="micro">Seu plano vale até ${new Date(me.billing.until).toLocaleDateString('pt-BR')}${me.billing.source === 'pix' ? ', pago com Pix. Renove antes para não perder o ritmo.' : '.'}</p>` : ''}
       ${payBar()}
-      <div class="plans">${Object.entries(plans).map(([k, p]) => `<div class="plan ${k === cur ? 'on' : ''}"><h3>${esc(p.name)}</h3><div class="price">${p.price ? priceLabel(p) : 'R$ 0<small>/mês</small>'}</div><ul>${p.perks.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${k === cur ? '<span class="tag ok">seu plano</span>' : k === 'free' ? '' : `<button class="btn btn-primary" data-plan="${k}"><span class="spin"></span>${planCta()} ${esc(p.name)}</button>`}${k === cur && me.billing?.source === 'pix' ? `<button class="btn btn-ghost" data-plan="${k}"><span class="spin"></span>Renovar com Pix</button>` : ''}</div>`).join('')}</div>
+      <div class="plans">${Object.entries(plans).map(([k, p]) => planCard(k, p, { current: k === cur, featured: k === 'pro' && cur === 'free', renewPix: me.billing?.source === 'pix' })).join('')}</div>
       <p class="fine">Posts: feed ou carrossel. Reels: vídeo de até 5 s gerado a partir da foto, com capa e legenda. Limites por mês = semana × 4.</p>`;
     bindPay(viewPlan, 'plano');
   }
@@ -1024,14 +1101,14 @@
     const b = me.brand || { colors: {} };
     main.innerHTML = `<div class="stack"><span class="eyebrow">Configurações</span><h1>Sua marca</h1><p class="lead">${me.user.email ? esc(me.user.email) : me.user.via_instagram ? 'Conta criada pelo Instagram. Para entrar de novo, use Entrar com Instagram.' : ''}</p></div>
       <nav class="subnav"><a href="#/conta" aria-current="page">Marca e integrações</a><a href="#/plano">Plano e pagamento</a></nav>
-      <form class="card" id="f">${brandForm(b, null, true)}<button class="btn btn-primary btn-block" type="submit">Salvar</button></form>
-      <div class="card" id="wa"><h3>WhatsApp</h3>${me.user.phone ? `<p class="lead">Conectado: ${esc(me.user.phone)}. Mande a foto de um produto com nome e preço na legenda.</p>` : me.whatsapp ? `<p class="lead">Mande a foto, receba o post. Conecte seu número em dois passos.</p><button class="btn btn-ghost" id="wa-code">Gerar código</button><div id="wa-out"></div>` : `<p class="lead">Mande a foto pelo WhatsApp e receba o post pronto. Disponível no plano Pro, em breve neste ambiente.</p>`}</div>
-      <div class="card" id="ig"><h3>Instagram</h3>${igCard('conta')}${me.instagram?.account ? '<button class="btn btn-ghost btn-sm" id="ig-off">Desconectar</button>' : ''}</div>
+      <form class="card" id="f">${brandForm(b, null, true)}<button class="btn btn-primary btn-block" type="submit">${ic('check')}Salvar</button></form>
+      <div class="card integ" id="wa"><h3>${logo('whatsapp', 'c-wa')}WhatsApp</h3>${me.user.phone ? `<p class="lead">Conectado: ${esc(me.user.phone)}. Mande a foto de um produto com nome e preço na legenda.</p>` : me.whatsapp ? `<p class="lead">Mande a foto, receba o post. Conecte seu número em dois passos.</p><button class="btn btn-ghost" id="wa-code">Gerar código</button><div id="wa-out"></div>` : `<p class="lead">Mande a foto pelo WhatsApp e receba o post pronto. Disponível no plano Pro, em breve neste ambiente.</p>`}</div>
+      <div class="card integ" id="ig"><h3>${logo('instagram', 'c-ig')}Instagram</h3>${igCard('conta')}${me.instagram?.account ? `<button class="btn btn-ghost btn-sm" id="ig-off">${ic('x')}Desconectar</button>` : ''}</div>
       ${igBeta() && me.sacolinha?.enabled ? `<div class="card" id="sac-card"><h3>Sacolinha do Instagram <span class="tag">Beta</span></h3><p class="lead">${me.sacolinha.connected ? 'Conectada. Importe os produtos da sua loja do Instagram com foto e preço.' : 'Traga fotos, nomes e preços da loja do Instagram. Você entra com o Facebook que administra a loja.'}</p>
         <div class="row" style="gap:8px;flex-wrap:wrap"><a class="btn btn-ghost btn-sm" href="/api/meta/connect?back=conta">${me.sacolinha.connected ? 'Importar de novo' : 'Conectar sacolinha'}</a>${me.sacolinha.connected ? '<button class="btn btn-ghost btn-sm" id="sac-off">Desconectar</button>' : ''}</div></div>` : ''}
-      <button class="btn btn-ghost btn-block" id="out">Sair</button>
+      <button class="btn btn-ghost btn-block" id="out">${ic('logout')}Sair da conta</button>
       <div class="card danger" id="del-card"><h3>Excluir minha conta</h3><p class="lead">Apaga sua marca, produtos, conteúdos, fotos e as conexões com Instagram e Facebook. Não dá para desfazer.</p>
-        <button class="btn btn-ghost btn-sm" id="del-acc">Excluir minha conta</button>
+        <button class="btn btn-ghost btn-sm" id="del-acc">${ic('trash')}Excluir minha conta</button>
         <div id="del-confirm" hidden><p class="lead">Tem certeza? Digite EXCLUIR para confirmar.</p><input class="input" id="del-word" autocapitalize="characters"><button class="btn btn-ghost btn-sm" id="del-go">Excluir para sempre</button></div></div>`;
     bindBrandForm();
     const sacQ = r?.q?.get('sacolinha');
@@ -1051,7 +1128,7 @@
     if (r?.q?.get('google')) googleToast(r.q.get('google'));
     if (me.user) { location.hash = me.brand ? '#/home' : '#/start'; return; }
     main.innerHTML = `<div class="stack center"><img class="mark" src="/assets/iris-mark.png" alt=""><h1>Entrar na Íris</h1><p class="lead">${loginLead()}</p></div>
-      <form class="card" id="f">${igBeta() ? '<a class="btn btn-ig btn-block" id="ig-login" href="/api/instagram/connect?back=start">Entrar com Instagram</a>' : ''}${googleBtn('login')}${emailFields()}</form>`;
+      <form class="card" id="f">${igBeta() ? `<a class="btn btn-ig btn-block" id="ig-login" href="/api/instagram/connect?back=start">${logo('instagram')}Entrar com Instagram</a>` : ''}${googleBtn('login')}${emailFields()}</form>`;
     if ($('#ig-login')) $('#ig-login').onclick = () => ONB.set({ step: 'ig' });
     $('#f').onsubmit = async e => { e.preventDefault(); const email = $('#email').value.trim(); const btn = $('#f button[type=submit]'); busy(btn, true); try { const d = await api('/auth/request', { method: 'POST', body: { email } }); codeForm(email, d.dev_code, async () => { await loadMe(); location.hash = me.brand ? '#/home' : '#/start'; render(); }); } catch (err) { $('#h').textContent = err.message; busy(btn, false); } };
   }
