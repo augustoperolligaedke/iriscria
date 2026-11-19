@@ -52,3 +52,6 @@ npx wrangler d1 migrations apply iris --remote
 npx wrangler pages deploy public --project-name iriscria
 ```
 Configure os secrets do `.dev.vars.example` no projeto Pages e ajuste `APP_URL` para o domínio final.
+
+## Licença
+MIT. Veja [LICENSE](LICENSE).
